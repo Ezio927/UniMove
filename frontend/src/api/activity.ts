@@ -95,16 +95,6 @@ export const activityAPI = {
     return api.delete(`/activities/${id}`);
   },
 
-  // 参加活动
-  joinActivity: async (id: string): Promise<{ success: boolean; message: string }> => {
-    return api.post(`/activities/${id}/join`);
-  },
-
-  // 退出活动
-  leaveActivity: async (id: string): Promise<{ success: boolean; message: string }> => {
-    return api.post(`/activities/${id}/leave`);
-  },
-
   // 获取我创建的活动
   getMyActivities: async (filters?: Pick<ActivityFilters, 'page' | 'limit' | 'status'>): Promise<ActivityListResponse> => {
     const params = new URLSearchParams();

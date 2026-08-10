@@ -4,7 +4,7 @@
 
 ## 项目概述
 UniMove 是一个体育场所预约系统，采用前后端分离架构：
-- 前端：React 18 + TypeScript + Vite + Ant Design + Redux Toolkit
+- 前端：React 19 + TypeScript + Vite + Ant Design + Redux Toolkit
 - 后端：Node.js + Express + TypeScript + MongoDB + Mongoose
 - 主要功能：用户管理、活动管理、订单管理、评论系统
 

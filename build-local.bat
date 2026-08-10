@@ -83,7 +83,7 @@ echo ```bash
 echo # 使用 Docker (推荐^)
 echo docker run -d --name mongodb -p 27017:27017 ^
 echo   -e MONGO_INITDB_ROOT_USERNAME=admin ^
-echo   -e MONGO_INITDB_ROOT_PASSWORD=admin123 ^
+echo   -e MONGO_INITDB_ROOT_PASSWORD=replace-with-a-strong-password ^
 echo   mongo:7.0
 echo ```
 echo.
@@ -112,7 +112,7 @@ echo - 前端: http://localhost
 echo - 后端 API: http://localhost:3001
 echo.
 echo ## 数据库配置
-echo 默认连接: mongodb://admin:admin123@localhost:27017/unimove?authSource=admin
+echo 连接密码请使用启动 MongoDB 时设置的 MONGO_INITDB_ROOT_PASSWORD
 ) > "deploy\README.md"
 
 echo.

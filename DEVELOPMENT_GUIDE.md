@@ -35,20 +35,20 @@ MONGODB_URI=mongodb://localhost:27017/unimove
 DB_NAME=unimove
 
 # JWT 配置
-JWT_SECRET=your-super-secret-jwt-key-here
+JWT_SECRET=replace-with-at-least-32-random-characters
 
 # 服务器配置
 PORT=3000
 NODE_ENV=development
 
 # CORS 配置
-CORS_ORIGIN=http://localhost:5173
+FRONTEND_URL=http://localhost:5173
 ```
 
 #### 前端环境变量
 创建 `frontend/.env` 文件：
 ```env
-VITE_API_BASE_URL=http://localhost:3000/api
+VITE_API_URL=http://localhost:3001/api
 ```
 
 ### 启动开发服务器

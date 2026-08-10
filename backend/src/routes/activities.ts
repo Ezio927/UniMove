@@ -16,7 +16,5 @@ router.get('/:id', ActivityController.getActivityById);
 router.post('/', authenticateToken, ActivityController.createActivity);
 router.put('/:id', authenticateToken, ActivityController.updateActivity);
 router.delete('/:id', authenticateToken, ActivityController.deleteActivity);
-router.post('/:id/join', authenticateToken, ActivityController.joinActivity);
-router.post('/:id/leave', authenticateToken, ActivityController.leaveActivity);
 
 export default router;

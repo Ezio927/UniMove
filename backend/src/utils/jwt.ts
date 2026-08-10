@@ -1,8 +1,6 @@
 import jwt from 'jsonwebtoken';
 import { IUser } from '../models/User';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
+import { getJwtExpiresIn, getJwtSecret } from './env';
 
 export interface TokenPayload {
   userId: string;
@@ -17,13 +15,13 @@ export const generateToken = (user: IUser): string => {
     role: user.role
   };
 
-  return jwt.sign(payload, JWT_SECRET, {
-    expiresIn: JWT_EXPIRES_IN
+  return jwt.sign(payload, getJwtSecret(), {
+    expiresIn: getJwtExpiresIn()
   } as jwt.SignOptions);
 };
 
 export const verifyToken = (token: string): TokenPayload => {
-  return jwt.verify(token, JWT_SECRET) as TokenPayload;
+  return jwt.verify(token, getJwtSecret()) as TokenPayload;
 };
 
 export const generateRefreshToken = (user: IUser): string => {
@@ -32,7 +30,7 @@ export const generateRefreshToken = (user: IUser): string => {
     type: 'refresh'
   };
 
-  return jwt.sign(payload, JWT_SECRET, {
+  return jwt.sign(payload, getJwtSecret(), {
     expiresIn: '30d'
   } as jwt.SignOptions);
 };

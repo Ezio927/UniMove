@@ -215,18 +215,30 @@ export class ActivityController {
         return;
       }
 
+      const allowedFields = [
+        'title',
+        'description',
+        'category',
+        'location',
+        'startTime',
+        'endTime',
+        'maxParticipants',
+        'price',
+        'images',
+        'tags',
+        'status'
+      ] as const;
+      const updateData = Object.fromEntries(
+        Object.entries(req.body).filter(([key]) =>
+          allowedFields.includes(key as typeof allowedFields[number])
+        )
+      );
+
       // 如果活动已有参与者，限制某些字段的修改
       if (activity.participants.length > 0) {
         const restrictedFields = ['startTime', 'endTime', 'maxParticipants', 'price'];
-        const updateData = { ...req.body };
-        
-        restrictedFields.forEach(field => {
-          if (updateData[field] !== undefined) {
-            delete updateData[field];
-          }
-        });
 
-        if (Object.keys(req.body).some(key => restrictedFields.includes(key))) {
+        if (Object.keys(updateData).some(key => restrictedFields.includes(key))) {
           res.status(400).json({
             success: false,
             message: '活动已有参与者，不能修改时间、人数或价格'
@@ -237,7 +249,7 @@ export class ActivityController {
 
       const updatedActivity = await Activity.findByIdAndUpdate(
         id,
-        req.body,
+        updateData,
         { new: true, runValidators: true }
       ).populate('organizer', 'username email avatar');
 

@@ -27,11 +27,9 @@ const Login: React.FC = () => {
   }, [isAuthenticated, navigate]);
 
   const onFinish = async (values: LoginFormData) => {
-    console.log('登录表单提交:', values);
     setLoading(true);
     try {
       const response = await userAPI.login(values);
-      console.log('登录API响应:', response);
       if (response.success) {
         dispatch(setCredentials({
           user: response.data.user,
@@ -43,7 +41,6 @@ const Login: React.FC = () => {
         message.error(response.message || '登录失败');
       }
     } catch (error: unknown) {
-      console.error('登录错误:', error);
       const errorMessage = error instanceof Error ? error.message : '登录失败，请稍后重试';
       message.error(errorMessage);
     } finally {

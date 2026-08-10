@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, Card, Typography, message, Divider, Select } from 'antd';
+import { Form, Input, Button, Card, Typography, message, Divider } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -8,15 +8,12 @@ import { userAPI } from '../api/user';
 import './Register.css';
 
 const { Title, Text } = Typography;
-const { Option } = Select;
-
 interface RegisterFormData {
   username: string;
   email: string;
   password: string;
   confirmPassword: string;
   phone?: string;
-  role: 'user' | 'admin';
 }
 
 const Register: React.FC = () => {
@@ -33,14 +30,11 @@ const Register: React.FC = () => {
   }, [isAuthenticated, navigate]);
 
   const onFinish = async (values: RegisterFormData) => {
-    console.log('注册表单提交:', values);
     setLoading(true);
     try {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { confirmPassword, ...registerData } = values;
-      console.log('发送到API的数据:', registerData);
       const response = await userAPI.register(registerData);
-      console.log('API响应:', response);
       
       if (response.success) {
         dispatch(setCredentials({
@@ -53,7 +47,6 @@ const Register: React.FC = () => {
         message.error(response.message || '注册失败');
       }
     } catch (error: unknown) {
-      console.error('注册错误:', error);
       const errorMessage = error instanceof Error ? error.message : '注册失败，请稍后重试';
       message.error(errorMessage);
     } finally {
@@ -117,18 +110,6 @@ const Register: React.FC = () => {
               prefix={<PhoneOutlined />}
               placeholder="请输入手机号（可选）"
             />
-          </Form.Item>
-
-          <Form.Item
-            label="用户类型"
-            name="role"
-            initialValue="user"
-            rules={[{ required: true, message: '请选择用户类型' }]}
-          >
-            <Select placeholder="选择用户类型">
-              <Option value="user">普通用户</Option>
-              <Option value="admin">管理员</Option>
-            </Select>
           </Form.Item>
 
           <Form.Item
