@@ -33,9 +33,14 @@ const parsePositiveInteger = (value: unknown, fallback: number, maximum: number)
   return Math.min(number, maximum);
 };
 
-export const buildActivityCatalogQuery = (input: ActivityQueryInput) => {
+export const parsePagination = (input: ActivityQueryInput, defaultLimit = 10) => {
   const page = parsePositiveInteger(input.page, 1, Number.MAX_SAFE_INTEGER);
-  const limit = parsePositiveInteger(input.limit, 10, 100);
+  const limit = parsePositiveInteger(input.limit, defaultLimit, 100);
+  return { page, limit, skip: (page - 1) * limit };
+};
+
+export const buildActivityCatalogQuery = (input: ActivityQueryInput) => {
+  const { page, limit, skip } = parsePagination(input);
   const category = stringValue(input.category);
   const location = stringValue(input.location);
   const search = stringValue(input.search);
@@ -76,5 +81,5 @@ export const buildActivityCatalogQuery = (input: ActivityQueryInput) => {
   const sortOrder: 1 | -1 = input.sortOrder === 'asc' ? 1 : -1;
   const sort: Record<string, 1 | -1> = { [sortBy]: sortOrder };
 
-  return { query, page, limit, skip: (page - 1) * limit, sort };
+  return { query, page, limit, skip, sort };
 };

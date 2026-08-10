@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { AppError } from '../errors/AppError';
-import { buildActivityCatalogQuery } from './activityQuery';
+import { buildActivityCatalogQuery, parsePagination } from './activityQuery';
 
 describe('buildActivityCatalogQuery', () => {
   it('uses safe defaults and caps the page size', () => {
@@ -27,5 +27,12 @@ describe('buildActivityCatalogQuery', () => {
   it('rejects invalid or reversed ranges', () => {
     expect(() => buildActivityCatalogQuery({ startDate: 'invalid' })).toThrow(AppError);
     expect(() => buildActivityCatalogQuery({ minPrice: '20', maxPrice: '5' })).toThrow(AppError);
+  });
+});
+
+describe('parsePagination', () => {
+  it('normalizes invalid values and caps page size', () => {
+    expect(parsePagination({ page: '3', limit: '500' })).toEqual({ page: 3, limit: 100, skip: 200 });
+    expect(parsePagination({ page: '0', limit: 'nope' })).toEqual({ page: 1, limit: 10, skip: 0 });
   });
 });

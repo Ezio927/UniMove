@@ -6,8 +6,8 @@ import { asyncHandler } from '../middleware/asyncHandler';
 const router = Router();
 
 // 用户相关的活动路由（必须在 /:id 之前定义）
-router.get('/my/created', authenticateToken, ActivityController.getMyActivities);
-router.get('/my/joined', authenticateToken, ActivityController.getJoinedActivities);
+router.get('/my/created', authenticateToken, asyncHandler(ActivityController.getMyActivities));
+router.get('/my/joined', authenticateToken, asyncHandler(ActivityController.getJoinedActivities));
 
 // 公开路由
 router.get('/', asyncHandler(ActivityController.getActivities));
