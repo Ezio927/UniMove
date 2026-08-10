@@ -53,9 +53,13 @@ const ActivityDetail: React.FC = () => {
           </div>
           <div className="detail-price">{activity.price === 0 ? '免费活动' : `¥${activity.price}`}</div>
           {isOrganizer ? <Alert showIcon type="info" message="这是你创建的活动" /> : userEnrollmentStatus ? (
-            <Space.Compact block><Button block disabled icon={<TeamOutlined />}>已报名</Button><Button danger loading={cancelling} onClick={handleCancelEnrollment}>取消报名</Button><Button aria-label={isFavorite ? '取消收藏' : '收藏活动'} loading={mutatingId === activity._id} icon={isFavorite ? <HeartFilled /> : <HeartOutlined />} onClick={handleFavorite}>{isFavorite ? '取消收藏' : '收藏活动'}</Button></Space.Compact>
+            <Space.Compact block><Button block disabled icon={<TeamOutlined />}>已报名</Button><Button danger loading={cancelling} onClick={handleCancelEnrollment}>取消报名</Button></Space.Compact>
           ) : <Space.Compact block><Button block type="primary" size="large" icon={<TeamOutlined />} loading={enrolling}
-            disabled={past || full} onClick={handleEnroll}>{past ? '活动已结束' : full ? '名额已满' : '立即报名'}</Button><Button aria-label={isFavorite ? '取消收藏' : '收藏活动'} loading={mutatingId === activity._id} icon={isFavorite ? <HeartFilled /> : <HeartOutlined />} onClick={handleFavorite}>{isFavorite ? '取消收藏' : '收藏活动'}</Button></Space.Compact>}
+            disabled={past || full} onClick={handleEnroll}>{past ? '活动已结束' : full ? '名额已满' : '立即报名'}</Button></Space.Compact>}
+          <Button block aria-label={isFavorite ? '取消收藏' : '收藏活动'} loading={mutatingId === activity._id}
+            icon={isFavorite ? <HeartFilled /> : <HeartOutlined />} onClick={handleFavorite}>
+            {isFavorite ? '取消收藏' : '收藏活动'}
+          </Button>
         </Card>
       </section>
 
