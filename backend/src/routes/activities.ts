@@ -11,11 +11,11 @@ router.get('/my/joined', authenticateToken, ActivityController.getJoinedActiviti
 
 // 公开路由
 router.get('/', asyncHandler(ActivityController.getActivities));
-router.get('/:id', ActivityController.getActivityById);
+router.get('/:id', asyncHandler(ActivityController.getActivityById));
 
 // 需要认证的路由
-router.post('/', authenticateToken, ActivityController.createActivity);
-router.put('/:id', authenticateToken, ActivityController.updateActivity);
-router.delete('/:id', authenticateToken, ActivityController.deleteActivity);
+router.post('/', authenticateToken, asyncHandler(ActivityController.createActivity));
+router.put('/:id', authenticateToken, asyncHandler(ActivityController.updateActivity));
+router.delete('/:id', authenticateToken, asyncHandler(ActivityController.deleteActivity));
 
 export default router;

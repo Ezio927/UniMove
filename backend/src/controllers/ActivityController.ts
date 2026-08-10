@@ -1,56 +1,17 @@
 import { Response } from 'express';
-import { Activity, IActivity } from '../models/Activity';
+import { Activity } from '../models/Activity';
 import { AuthRequest } from '../middleware/auth';
 import mongoose from 'mongoose';
-import { hasLockedActivityUpdates, pickActivityUpdates } from '../utils/activityUpdates';
 import { buildActivityCatalogQuery } from '../utils/activityQuery';
+import { AppError } from '../errors/AppError';
+import { ActivityService } from '../services/ActivityService';
 
 export class ActivityController {
   // 创建活动
   static async createActivity(req: AuthRequest, res: Response): Promise<void> {
-    try {
-      const {
-        title,
-        description,
-        category,
-        location,
-        startTime,
-        endTime,
-        maxParticipants,
-        price,
-        images,
-        tags
-      } = req.body;
-
-      const activity: IActivity = new Activity({
-        title,
-        description,
-        category,
-        location,
-        startTime: new Date(startTime),
-        endTime: new Date(endTime),
-        maxParticipants,
-        price,
-        images: images || [],
-        tags: tags || [],
-        organizer: req.user?.userId,
-        status: 'published'
-      });
-
-      await activity.save();
-      await activity.populate('organizer', 'username email avatar');
-
-      res.status(201).json({
-        success: true,
-        message: '活动创建成功',
-        data: { activity }
-      });
-    } catch (error: any) {
-      res.status(400).json({
-        success: false,
-        message: error.message || '活动创建失败'
-      });
-    }
+    if (!req.user) throw new AppError(401, '未认证');
+    const activity = await ActivityService.create(req.body, req.user.userId);
+    res.status(201).json({ success: true, message: '活动创建成功', data: { activity } });
   }
 
   // 获取活动列表
@@ -81,160 +42,24 @@ export class ActivityController {
 
   // 获取活动详情
   static async getActivityById(req: AuthRequest, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-
-      if (!mongoose.Types.ObjectId.isValid(id)) {
-        res.status(400).json({
-          success: false,
-          message: '无效的活动ID'
-        });
-        return;
-      }
-
-      const activity = await Activity.findById(id)
-        .populate('organizer', 'username email avatar phone')
-        .populate('participants', 'username avatar');
-
-      if (!activity) {
-        res.status(404).json({
-          success: false,
-          message: '活动不存在'
-        });
-        return;
-      }
-
-      res.json({
-        success: true,
-        data: { activity }
-      });
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || '获取活动详情失败'
-      });
-    }
+    const activity = await ActivityService.getById(req.params.id);
+    res.json({ success: true, data: { activity } });
   }
 
   // 更新活动
   static async updateActivity(req: AuthRequest, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const userId = req.user?.userId;
-
-      if (!mongoose.Types.ObjectId.isValid(id)) {
-        res.status(400).json({
-          success: false,
-          message: '无效的活动ID'
-        });
-        return;
-      }
-
-      const activity = await Activity.findById(id);
-
-      if (!activity) {
-        res.status(404).json({
-          success: false,
-          message: '活动不存在'
-        });
-        return;
-      }
-
-      // 检查权限
-      if (activity.organizer.toString() !== userId && req.user?.role !== 'admin') {
-        res.status(403).json({
-          success: false,
-          message: '无权修改此活动'
-        });
-        return;
-      }
-
-      const updateData = pickActivityUpdates(req.body);
-
-      // 如果活动已有参与者，限制某些字段的修改
-      if (activity.participants.length > 0) {
-        if (hasLockedActivityUpdates(updateData)) {
-          res.status(400).json({
-            success: false,
-            message: '活动已有参与者，不能修改时间、人数或价格'
-          });
-          return;
-        }
-      }
-
-      const updatedActivity = await Activity.findByIdAndUpdate(
-        id,
-        updateData,
-        { new: true, runValidators: true }
-      ).populate('organizer', 'username email avatar');
-
-      res.json({
-        success: true,
-        message: '活动更新成功',
-        data: { activity: updatedActivity }
-      });
-    } catch (error: any) {
-      res.status(400).json({
-        success: false,
-        message: error.message || '活动更新失败'
-      });
-    }
+    if (!req.user) throw new AppError(401, '未认证');
+    const activity = await ActivityService.update(
+      req.params.id, req.body, req.user.userId, req.user.role
+    );
+    res.json({ success: true, message: '活动更新成功', data: { activity } });
   }
 
   // 删除活动
   static async deleteActivity(req: AuthRequest, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const userId = req.user?.userId;
-
-      if (!mongoose.Types.ObjectId.isValid(id)) {
-        res.status(400).json({
-          success: false,
-          message: '无效的活动ID'
-        });
-        return;
-      }
-
-      const activity = await Activity.findById(id);
-
-      if (!activity) {
-        res.status(404).json({
-          success: false,
-          message: '活动不存在'
-        });
-        return;
-      }
-
-      // 检查权限
-      if (activity.organizer.toString() !== userId && req.user?.role !== 'admin') {
-        res.status(403).json({
-          success: false,
-          message: '无权删除此活动'
-        });
-        return;
-      }
-
-      // 如果活动已有参与者，不允许删除
-      if (activity.participants.length > 0) {
-        res.status(400).json({
-          success: false,
-          message: '活动已有参与者，不能删除'
-        });
-        return;
-      }
-
-      await Activity.findByIdAndDelete(id);
-
-      res.json({
-        success: true,
-        message: '活动删除成功'
-      });
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || '活动删除失败'
-      });
-    }
+    if (!req.user) throw new AppError(401, '未认证');
+    await ActivityService.delete(req.params.id, req.user.userId, req.user.role);
+    res.json({ success: true, message: '活动删除成功' });
   }
 
   // 参加活动
