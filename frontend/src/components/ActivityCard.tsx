@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, Tag, Button, Avatar, Space } from 'antd';
-import { UserOutlined, CalendarOutlined, EnvironmentOutlined, TeamOutlined, DollarOutlined } from '@ant-design/icons';
+import { Avatar, Button, Card, Space, Tag } from 'antd';
+import { CalendarOutlined, EnvironmentOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import type { Activity } from '../api/activity';
@@ -16,162 +16,50 @@ interface ActivityCardProps {
 }
 
 const ActivityCard: React.FC<ActivityCardProps> = ({
-  activity,
-  showActions = true,
-  onJoin,
-  onLeave,
-  isJoined = false,
-  loading = false,
+  activity, showActions = true, onJoin, onLeave, isJoined = false, loading = false
 }) => {
   const navigate = useNavigate();
+  const full = activity.currentParticipants >= activity.maxParticipants;
+  const past = dayjs(activity.startTime).isBefore(dayjs());
+  const disabled = full || past;
 
-  const handleViewDetail = () => {
-    navigate(`/activities/${activity._id}`);
+  const handleEnrollment = () => {
+    if (isJoined) onLeave?.(activity._id);
+    else onJoin?.(activity._id);
   };
-
-  const handleJoinClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (isJoined && onLeave) {
-      onLeave(activity._id);
-    } else if (!isJoined && onJoin) {
-      onJoin(activity._id);
-    }
-  };
-
-  const isActivityFull = activity.currentParticipants >= activity.maxParticipants;
-  const isActivityPast = dayjs(activity.startTime).isBefore(dayjs());
 
   return (
-    <Card
-      hoverable
-      className="activity-card"
-      cover={
-        activity.images && activity.images.length > 0 ? (
-          <img
-            alt={activity.title}
-            src={activity.images[0]}
-            className="activity-image"
-          />
-        ) : (
-          <div className="activity-image-placeholder">
-            <CalendarOutlined style={{ fontSize: 48, color: '#d9d9d9' }} />
-          </div>
-        )
-      }
-      actions={
-        showActions
-          ? [
-              <Button type="link" onClick={handleViewDetail}>
-                查看详情
-              </Button>,
-              isJoined ? (
-                <Space.Compact>
-                  <Button
-                    type="default"
-                    size="small"
-                    disabled
-                  >
-                    已报名
-                  </Button>
-                  <Button
-                    type="primary"
-                    danger
-                    size="small"
-                    onClick={handleJoinClick}
-                    loading={loading}
-                  >
-                    取消报名
-                  </Button>
-                </Space.Compact>
-              ) : (
-                <Button
-                  type="primary"
-                  onClick={handleJoinClick}
-                  loading={loading}
-                  disabled={!isJoined && (isActivityFull || isActivityPast)}
-                >
-                  参加活动
-                </Button>
-              ),
-            ]
-          : [
-              <Button type="link" onClick={handleViewDetail}>
-                查看详情
-              </Button>,
-            ]
-      }
-    >
-      <Card.Meta
-        title={
-          <div className="activity-title">
-            <span>{activity.title}</span>
-            <Tag color="blue">{activity.category}</Tag>
-          </div>
-        }
-        description={
-          <div className="activity-description">
-            <p className="activity-desc-text">
-              {activity.description.length > 80
-                ? `${activity.description.substring(0, 80)}...`
-                : activity.description}
-            </p>
-            
-            <Space direction="vertical" size="small" className="activity-info">
-              <Space>
-                <CalendarOutlined />
-                <span>{dayjs(activity.startTime).format('YYYY-MM-DD HH:mm')}</span>
-              </Space>
-              
-              <Space>
-                <EnvironmentOutlined />
-                <span>{activity.location}</span>
-              </Space>
-              
-              <Space>
-                <TeamOutlined />
-                <span>
-                  {activity.currentParticipants}/{activity.maxParticipants}人
-                </span>
-                {isActivityFull && <Tag color="red">已满</Tag>}
-              </Space>
-              
-              <Space>
-                <DollarOutlined />
-                <span className="activity-price">
-                  {activity.price === 0 ? '免费' : `¥${activity.price}`}
-                </span>
-              </Space>
-            </Space>
-            
-            <div className="activity-organizer">
-              <Space>
-                <Avatar
-                  size="small"
-                  src={activity.organizer.avatar}
-                  icon={!activity.organizer.avatar && <UserOutlined />}
-                />
-                <span>组织者: {activity.organizer.username}</span>
-              </Space>
-            </div>
-            
-            {activity.tags && activity.tags.length > 0 && (
-              <div className="activity-tags">
-                {activity.tags.map((tag, index) => (
-                  <Tag key={index}>
-                    {tag}
-                  </Tag>
-                ))}
-              </div>
-            )}
-            
-            {isActivityPast && (
-              <div className="activity-status">
-                <Tag color="default">活动已结束</Tag>
-              </div>
-            )}
-          </div>
-        }
-      />
+    <Card className="activity-card" styles={{ body: { padding: 0 } }}>
+      <button className="activity-cover" onClick={() => navigate(`/activities/${activity._id}`)} aria-label={`查看${activity.title}详情`}>
+        {activity.images?.[0]
+          ? <img alt="" src={activity.images[0]} className="activity-image" />
+          : <div className="activity-image-placeholder"><CalendarOutlined /></div>}
+        <Tag color="blue" className="activity-category">{activity.category}</Tag>
+        {(past || full) && <Tag className="activity-state">{past ? '已结束' : '已满员'}</Tag>}
+      </button>
+
+      <div className="activity-card-body">
+        <button className="activity-title-link" onClick={() => navigate(`/activities/${activity._id}`)}>{activity.title}</button>
+        <p className="activity-desc-text">{activity.description}</p>
+        <div className="activity-meta">
+          <span><CalendarOutlined />{dayjs(activity.startTime).format('MM月DD日 HH:mm')}</span>
+          <span><EnvironmentOutlined />{activity.location}</span>
+          <span><TeamOutlined />{activity.currentParticipants}/{activity.maxParticipants} 人</span>
+        </div>
+        <div className="activity-card-footer">
+          <Space size={8} className="activity-organizer">
+            <Avatar size={24} src={activity.organizer.avatar} icon={<UserOutlined />} />
+            <span>{activity.organizer.username}</span>
+          </Space>
+          <strong className="activity-price">{activity.price === 0 ? '免费' : `¥${activity.price}`}</strong>
+        </div>
+        {showActions && (
+          <Button block type={isJoined ? 'default' : 'primary'} loading={loading}
+            disabled={!isJoined && disabled} onClick={handleEnrollment}>
+            {isJoined ? '取消报名' : past ? '活动已结束' : full ? '名额已满' : '参加活动'}
+          </Button>
+        )}
+      </div>
     </Card>
   );
 };
