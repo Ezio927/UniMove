@@ -20,7 +20,7 @@ UniMove 的认证、活动、订单、评论、前端界面和既有 Docker 配�
 - [x] P6：接入活动列表、详情和个人中心界面（`cdf5d6d`、`d9444eb`、`611f003`）。
 - [x] P7：完成规约、质量与安全复审；修复跨层 organizer 契约及状态时序问题（`ecd48d6`、`b804e693be893fb269068afb45d6baf8d3416e7a`、`e35143c`）。
 - [x] P8：提供根目录一键质量门禁和 GitLab `unit-test`/质量 CI（`e4c4f84fce0a1d44933c29b25bfd7d950d7e9025`、`6686bb6e5ace9b482f210a1177db77460eb09237`）；本阶段最终 `npm run verify` 已通过。
-- [x] P9：完成可复核 Docker 分发、安全边界、README 与提交文档（Docker：`72ac455`、`826f518`、`03b1efb`；首轮文档：`71cb693`）；最终 Compose 配置检查、运行时 loopback CORS、凭据扫描和 diff 门禁已通过。Task 4 定向复审的两个 Important 已在本修复轮处理并通过相同门禁；提交基础设施的 whole-branch review 尚未发生，仍 pending。
+- [x] P9：完成可复核 Docker 分发、安全边界、README 与提交文档（Docker：`72ac455`、`826f518`、`03b1efb`；文档：`71cb693`、`e0f4868`）。Task 4 定向复审的 CORS Important 由 `03b1efb` 修复并完成 scoped 复审，过程证据 Important 由 `e0f4868` 修复；最终 Compose 配置、运行时 loopback CORS、凭据扫描和 diff 门禁均通过。提交基础设施的 whole-branch review 尚未发生，仍 pending。
 - [ ] P10：准备可访问的线上 WebUI。依赖 P9，需要部署平台账号与授权。
 - [ ] P11：由学生完成 `REFLECTION.md`，执行最终验证并提交。依赖 P3–P10。
 

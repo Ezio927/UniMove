@@ -28,9 +28,10 @@
 ## 2026-08-10 / P9：Docker 与提交文档
 
 - 实现 Agent：`infra_docker`（`gpt-5.6-terra` / high）。上下文：以 Task 3 brief 为边界，核心栈只保留 MongoDB/backend/frontend，健康依赖、反向代理和最小宿主机暴露；所有示例使用进程本地伪凭据。提交 `72ac455`，修复轮提交 `826f518`、`03b1efb`。
-- 审查 Agent：`review_docker`（`gpt-5.6-sol` / high）。上下文：只读 Docker brief、报告、diff 和本机 Docker 状态，审查规约、安全、运行时与清理边界。首轮发现固定容器名称、直出端口、URI 密码、Mongo Express 认证和 IPv6 健康检查问题；第二轮发现 loopback CORS 与许可证元数据冲突。`03b1efb` 后复审 APPROVE，无新 Critical/Important；`/api/health` 不做数据库读保留为 deferred minor。
+- 审查 Agent：`review_docker`（`gpt-5.6-sol` / high）。上下文：只读 Docker brief、报告、diff 和本机 Docker 状态，审查规约、安全、运行时与清理边界。首轮发现固定容器名称、直出端口、URI 密码、Mongo Express 认证和 IPv6 健康检查问题。后续按限定范围复审 `03b1efb` 的 loopback CORS 修复与 MIT metadata 修复，结论为 APPROVE、无新 Critical/Important；`/api/health` 不做数据库读保留为 deferred minor。
 - 实现 Agent：`infra_docs`（`gpt-5.6-terra` / high）。上下文：只更新 README、Docker 指南和课程过程文档，使其反映已验证的 root/CI/Docker 契约；移除不存在脚本、Compose 中的开发热重载及危险清理的常规指引。首轮文档提交 `71cb693`；未保存逐字 prompt 或真实凭据。
-- Task 4 审查 Agent：`review_infra_docs`（`gpt-5.6-sol` / high）。上下文：只读 Task 4 brief、报告和 `826f518..71cb693` diff，检查提交章节、命令、安全陈述与课程证据。发现 2 项 Important：其一，课程日志遗漏本阶段技能、模型/effort、Task 4 reviewer、提交与 whole-branch review 状态；其二，Docker 指南把 `compose config` 的能力写得过强且未警告其会输出解析后的秘密。本修复轮补齐这些证据和边界。
+- Task 4 审查 Agent：`review_infra_docs`（`gpt-5.6-sol` / high）。上下文：只读 Task 4 brief、报告和 `826f518..71cb693` diff，检查提交章节、命令、安全陈述与课程证据。首轮准确的 2 项 Important 为：A）README/DOCKER_GUIDE 把浏览器入口写为 `127.0.0.1`，而当时 Compose backend CORS 只允许 `http://localhost`，入口与 allowlist 不一致；B）课程日志遗漏本阶段实际技能、模型/effort、Task 4 reviewer、`71cb693` 以及 whole-branch review pending 状态。A 由 `infra_docker` 在 `03b1efb` 修复，并由 `review_docker` 后续 scoped 复审批准；B 由 `infra_docs` 在 `e0f4868` 补齐。
+- 同轮 Minor：Docker 指南需说明 `compose config` 不能证明 raw/encoded 密码等价且会输出解析后的秘密；Task 4 report 的凭据扫描需使用可复现表达式；README 应写实际依赖 `bcryptjs`；后续 MIT metadata 状态需同步记录。这些均在 `e0f4868` 的文档修订或 `03b1efb` 的 metadata 修复中处理，不计为首轮 Important。
 - 验证：使用 process-local dummy secrets 的 `docker compose -p unimove-validation config` 与 tools 合并配置均退出 0；镜像构建成功；成功运行时三个核心服务均 healthy，`/health` 返回 `200 ok`，`/api/health` 返回连接成功。最终根 `npm run verify`、核心/tools `docker compose config`、`git diff --check` 与已跟踪文件凭据扫描在本阶段文档完成后重新执行并记录在 Task 4 report。
 
 ## 人工决策与待办
