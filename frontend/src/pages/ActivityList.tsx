@@ -1,118 +1,41 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { Row, Col, Card, Input, Select, Button, Space, Pagination, message, Spin } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Row, Col, Card, Input, Select, Button, Space, Pagination, Spin } from 'antd';
 import { SearchOutlined, FilterOutlined, ReloadOutlined } from '@ant-design/icons';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { activityAPI } from '../api/activity';
-import { orderAPI } from '../api/order';
-import type { Activity, ActivityFilters } from '../api/activity';
+import { useLocation } from 'react-router-dom';
+import type { ActivityFilters } from '../api/activity';
 import ActivityCard from '../components/ActivityCard';
 import { useAppSelector } from '../store/hooks';
+import { DEFAULT_ACTIVITY_FILTERS, parseActivityFilters, serializeActivityFilters } from '../utils/activityFilters';
+import { useActivityCatalog } from '../hooks/useActivityCatalog';
 import './ActivityList.css';
 
 const { Search } = Input;
 const { Option } = Select;
 
 const ActivityList: React.FC = () => {
-  const navigate = useNavigate();
   const location = useLocation();
   const { isAuthenticated } = useAppSelector((state) => state.auth);
   
-  const [activities, setActivities] = useState<Activity[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [joining, setJoining] = useState<string | null>(null);
-  const [userOrders, setUserOrders] = useState<string[]>([]); // 用户已参加的活动ID列表
-  
-  // 分页信息
-  const [pagination, setPagination] = useState({
-    current: 1,
-    total: 0,
-    pageSize: 12,
-  });
 
   // 筛选条件
-  const [filters, setFilters] = useState<ActivityFilters>({
-    page: 1,
-    limit: 12,
-    search: '',
-    category: '',
-    location: '',
-    startDate: '',
-    endDate: '',
-    sortBy: 'createdAt',
-    sortOrder: 'desc',
-  });
+  const [filters, setFilters] = useState<ActivityFilters>(DEFAULT_ACTIVITY_FILTERS);
+  const { activities, loading, userOrders, pagination, setPagination, joining,
+    joinActivity, leaveActivity } =
+    useActivityCatalog(filters, isAuthenticated);
 
   // 从URL参数初始化筛选条件
   useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const initialFilters: ActivityFilters = {
-      page: Number(searchParams.get('page')) || 1,
-      limit: 12,
-      search: searchParams.get('search') || '',
-      category: searchParams.get('category') || '',
-      location: searchParams.get('location') || '',
-      sortBy: searchParams.get('sortBy') || 'createdAt',
-      sortOrder: (searchParams.get('sortOrder') as 'asc' | 'desc') || 'desc',
-    };
+    const initialFilters = parseActivityFilters(location.search);
     
     setFilters(initialFilters);
     setPagination(prev => ({ ...prev, current: initialFilters.page || 1 }));
-  }, [location.search]);
-
-  // 获取活动列表
-  const fetchActivities = useCallback(async (filterParams: ActivityFilters) => {
-    setLoading(true);
-    try {
-      const response = await activityAPI.getActivities(filterParams);
-      setActivities(response.data.activities);
-      setPagination(prev => ({
-        ...prev,
-        total: response.data.pagination.count,
-        current: response.data.pagination.current,
-      }));
-      
-      // 如果用户已登录，获取用户已报名的活动
-      if (isAuthenticated) {
-        try {
-          const ordersResponse = await orderAPI.getUserOrders();
-          if (ordersResponse.success) {
-            // 提取已支付订单对应的活动ID
-            const joinedActivityIds = ordersResponse.data.orders
-              .filter(order => order.status === 'paid')
-              .map(order => order.activity._id);
-            setUserOrders(joinedActivityIds);
-          }
-        } catch (error) {
-          console.error('获取用户订单失败:', error);
-        }
-      } else {
-        setUserOrders([]);
-      }
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : '获取活动列表失败';
-      message.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, [isAuthenticated]);
-
-  useEffect(() => {
-    fetchActivities(filters);
-  }, [filters, fetchActivities]);
+  }, [location.search, setPagination]);
 
 
 
   // 更新URL参数
   const updateUrlParams = (newFilters: ActivityFilters) => {
-    const params = new URLSearchParams();
-    
-    Object.entries(newFilters).forEach(([key, value]) => {
-      if (value && value !== '') {
-        params.set(key, String(value));
-      }
-    });
-    
-    const newUrl = `${location.pathname}?${params.toString()}`;
+    const newUrl = `${location.pathname}?${serializeActivityFilters(newFilters)}`;
     window.history.replaceState({}, '', newUrl);
   };
 
@@ -140,83 +63,17 @@ const ActivityList: React.FC = () => {
 
   // 处理参加活动
   const handleJoinActivity = async (activityId: string) => {
-    if (!isAuthenticated) {
-      message.warning('请先登录');
-      navigate('/login');
-      return;
-    }
-
-    setJoining(activityId);
-    try {
-      const response = await orderAPI.createOrder({ activityId });
-      if (response.success) {
-        message.success('报名成功！');
-        // 更新用户已报名活动列表
-        setUserOrders(prev => [...prev, activityId]);
-        // 刷新活动列表以更新参与人数
-        fetchActivities(filters);
-      } else {
-        message.error(response.message || '报名失败');
-      }
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : '报名失败';
-      message.error(errorMessage);
-    } finally {
-      setJoining(null);
-    }
+    await joinActivity(activityId);
   };
 
   // 处理退出活动
   const handleLeaveActivity = async (activityId: string) => {
-    setJoining(activityId);
-    try {
-      // 首先获取用户的订单
-      const ordersResponse = await orderAPI.getUserOrders();
-      if (!ordersResponse.success) {
-        message.error('获取订单信息失败');
-        return;
-      }
-
-      // 找到对应活动的订单
-      const order = ordersResponse.data.orders.find(order => 
-        order.activity._id === activityId && order.status === 'paid'
-      );
-
-      if (!order) {
-        message.error('未找到对应的订单');
-        return;
-      }
-
-      // 取消订单
-      const response = await orderAPI.cancelOrder(order._id, { reason: '用户主动取消' });
-      if (response.success) {
-        message.success('取消报名成功！');
-        // 从用户已报名活动列表中移除
-        setUserOrders(prev => prev.filter(id => id !== activityId));
-        // 刷新活动列表以更新参与人数
-        fetchActivities(filters);
-      } else {
-        message.error(response.message || '取消报名失败');
-      }
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : '取消报名失败';
-      message.error(errorMessage);
-    } finally {
-      setJoining(null);
-    }
+    await leaveActivity(activityId);
   };
 
   // 重置筛选条件
   const handleReset = () => {
-    const resetFilters: ActivityFilters = {
-      page: 1,
-      limit: 12,
-      search: '',
-      category: '',
-      location: '',
-      sortBy: 'createdAt',
-      sortOrder: 'desc',
-    };
+    const resetFilters = DEFAULT_ACTIVITY_FILTERS;
     setFilters(resetFilters);
     updateUrlParams(resetFilters);
   };

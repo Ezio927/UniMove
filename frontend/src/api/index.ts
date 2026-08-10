@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { ApiError } from './error';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
@@ -47,7 +48,12 @@ api.interceptors.response.use(
       window.location.href = '/login';
     }
     
-    return Promise.reject(error.response?.data || error.message);
+    const responseData = error.response?.data as { message?: string } | undefined;
+    return Promise.reject(new ApiError(
+      responseData?.message || error.message || '请求失败',
+      error.response?.status,
+      responseData
+    ));
   }
 );
 
