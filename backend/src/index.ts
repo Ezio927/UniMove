@@ -6,6 +6,7 @@ import { rateLimit } from 'express-rate-limit';
 import { connectDatabase } from './utils/database';
 import { getAllowedOrigins, validateEnvironment } from './utils/env';
 import routes from './routes';
+import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -53,22 +54,8 @@ app.get('/', (req, res) => {
   });
 });
 
-// 404 处理
-app.use('*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: 'Route not found'
-  });
-});
-
-// 错误处理中间件
-app.use((err: any, req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  console.error('Error:', err);
-  res.status(500).json({
-    success: false,
-    message: err.message || 'Internal server error'
-  });
-});
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 // 启动服务器
 const startServer = async () => {
