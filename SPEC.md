@@ -45,7 +45,7 @@ UniMove 是面向校园体育活动的全栈 Web 应用。学生可以浏览与�
 - 用户文档通过 `favoriteActivities` ObjectId 数组保存收藏。
 - 收藏使用 `$addToSet`，取消使用 `$pull`，重复请求保持幂等。
 - 收藏不存在的活动返回 404；非法活动 ID 返回 400。
-- 删除或失效的活动不出现在收藏列表。
+- 被物理删除、无法再由数据库查到的活动不出现在收藏列表；`cancelled` 和 `completed` 活动仍可作为历史收藏显示。
 - 所有收藏接口都必须经过现有 JWT 认证。
 - 活动列表、活动详情与个人中心提供收藏交互。
 - 不增加收藏夹分类、通知、推荐或未登录本地收藏。
@@ -56,7 +56,11 @@ UniMove 是面向校园体育活动的全栈 Web 应用。学生可以浏览与�
 - `PUT /api/users/favorites/:activityId`
 - `DELETE /api/users/favorites/:activityId`
 
-返回值沿用 `{ success, message?, data? }` 格式。
+三个接口成功状态码均为 200。GET 返回 `data.activities`；PUT 和 DELETE 返回
+`data.favoriteActivityIds`。PUT 消息为“收藏成功”，DELETE 消息为“已取消收藏”。
+DELETE 对未收藏或已经删除的活动仍然成功，以保证幂等。
+
+收藏列表不分页，按照活动 `createdAt` 倒序返回。本次只在读取时过滤不存在的活动引用，不扫描并清理用户文档中的历史 ID。
 
 ## 6. 非功能要求
 
@@ -93,4 +97,3 @@ UniMove 是面向校园体育活动的全栈 Web 应用。学生可以浏览与�
 - 使用普通账号完成活动浏览、收藏、取消收藏和个人中心查看收藏的流程。
 - 未登录访问收藏接口得到 401，非法 ID 得到 400，不存在活动得到 404。
 - CI 最后一次流水线通过，README 提供运行、分发、安全边界和已知限制说明。
-

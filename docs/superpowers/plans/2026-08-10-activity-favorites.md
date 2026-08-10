@@ -14,6 +14,8 @@
 - Preserve the existing JWT authentication and centralized `AppError` handling.
 - Favorite and unfavorite operations must be idempotent.
 - Deleted or missing activities must not appear in favorite results.
+- `cancelled` and `completed` activities remain visible; only missing database records are filtered.
+- Favorite results are not paginated and are ordered by activity `createdAt` descending.
 - Follow red-green-refactor: every implementation change starts with a failing focused test.
 - Do not change enrollment, order, or comment behavior.
 
@@ -132,7 +134,7 @@ static async addFavorite(userId: string, activityId: string) {
 }
 ```
 
-Implement `removeFavorite` with the same ID validation and `$pull`, without requiring the activity to exist. Implement `getFavorites` by selecting and populating `favoriteActivities`, then returning `user.favoriteActivities.filter(Boolean)`.
+Implement `removeFavorite` with the same ID validation and `$pull`, without requiring the activity to exist. Implement `getFavorites` by reading the stored IDs, querying existing activities with `Activity.find({ _id: { $in: ids } }).sort({ createdAt: -1 })`, and returning every existing status including `cancelled` and `completed`. Do not physically clean missing IDs.
 
 - [ ] **Step 4: Run service tests and verify green**
 

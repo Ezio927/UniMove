@@ -48,7 +48,7 @@ UniMove 已具备用户认证、活动浏览、报名、订单、评论和个人
 - `PUT /api/users/favorites/:activityId`：收藏活动；活动不存在时返回 404。
 - `DELETE /api/users/favorites/:activityId`：取消收藏；目标未收藏或活动已不存在时仍返回成功结果。
 
-列表查询只返回能够成功关联到 Activity 的记录，因此活动删除后不会在界面中显示无效收藏。无需在删除活动时扫描所有用户文档。
+列表查询只返回能够成功关联到 Activity 的记录，因此活动被物理删除后不会在界面中显示无效收藏；`cancelled` 和 `completed` 活动仍作为历史收藏显示。列表不分页，按活动 `createdAt` 倒序返回。无需在删除活动时扫描所有用户文档或物理清理历史 ID。
 
 ### 前端
 

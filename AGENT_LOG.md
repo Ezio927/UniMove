@@ -28,3 +28,14 @@
 - UniMove 基线代码早于本课程流程，不能证明全部使用测试先行；课程增量从 P3 起严格记录。
 - 基线 UI 使用 Ant Design，没有使用 Open Design。为保持既有界面一致且控制作业范围，本增量继续使用 Ant Design。
 - 早期仓库使用普通功能分支而非 worktree；活动收藏增量开始使用独立 worktree。
+
+## 2026-08-10 / P3：陌生 Agent 冷启动验证
+
+- Agent：独立 Codex 子 Agent（无主对话历史），任务名 `coldstart_favorites`。
+- 输入边界：只以根目录 `SPEC.md`、`PLAN.md` 为需求资料，允许检查实现所需源码。
+- 工作区：`.worktrees/coldstart-favorites`，分支 `course/coldstart-favorites`。
+- 技能纪律：TDD；逐项记录 RED/GREEN。
+- 结果：试做提交 `91d86c2`；后端 lint、类型检查、构建通过，14 个测试文件、41 项测试通过。
+- 关键偏差：Agent 把“失效活动”解释为 `cancelled` 并主动过滤，而原意只是忽略数据库中不存在的引用。
+- 人工决策：不直接合并试做代码；先明确状态、响应、排序、分页与物理清理策略，再由正式子 Agent 从修订规约实现。
+- 教训：抽象领域词必须在 SPEC 中映射到具体枚举值和 API 行为。

@@ -14,7 +14,7 @@ UniMove 的认证、活动、订单、评论、前端界面、基础测试和 Do
 - [x] P0：审计课程要求和仓库基线。依赖：无。证据：当前 SPEC、设计文档和仓库历史。
 - [x] P1：通过 brainstorming 确定活动收藏设计。依赖：P0。提交：`39ceb4e`。
 - [x] P2：通过 writing-plans 编写 TDD 实施计划。依赖：P1。提交：`0012748`。
-- [ ] P3：陌生 Agent 仅凭 `SPEC.md` 与 `PLAN.md` 冷启动试做，并修正规约歧义。依赖：P2。可与提交材料初稿并行。
+- [x] P3：陌生 Agent 仅凭 `SPEC.md` 与 `PLAN.md` 冷启动试做，并修正规约歧义。依赖：P2。试做提交：`91d86c2`（隔离验证分支，不直接合并）。
 - [ ] P4：在独立 worktree 中实现后端收藏模型、服务和 API。依赖：P3。
 - [ ] P5：实现前端收藏 API 与可复用状态 Hook。依赖：P4。
 - [ ] P6：在活动列表、详情和个人中心接入收藏界面。依赖：P5。
@@ -40,4 +40,3 @@ cd ../frontend && npm run lint && npm run type-check && npm test && npm run buil
 ```
 
 P8 将增加根目录统一命令，并由 GitLab CI 的 `unit-test` job 调用。
-
