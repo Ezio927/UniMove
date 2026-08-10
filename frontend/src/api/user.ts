@@ -1,4 +1,5 @@
 import api from './index';
+import type { Activity } from './activity';
 
 export interface User {
   _id?: string;
@@ -40,6 +41,11 @@ export interface AuthResponse {
   refreshToken: string;
 }
 
+interface FavoriteIdsResponse {
+  success: boolean;
+  data: { favoriteActivityIds: string[] };
+}
+
 export const userAPI = {
   // 用户注册
   register: async (data: RegisterData): Promise<{ success: boolean; message: string; data: AuthResponse }> => {
@@ -64,5 +70,17 @@ export const userAPI = {
   // 修改密码
   changePassword: async (data: ChangePasswordData): Promise<{ success: boolean; message: string }> => {
     return api.put('/users/password', data);
+  },
+
+  getFavorites: async (): Promise<{ success: boolean; data: { activities: Activity[] } }> => {
+    return api.get('/users/favorites');
+  },
+
+  addFavorite: async (activityId: string): Promise<FavoriteIdsResponse> => {
+    return api.put(`/users/favorites/${activityId}`);
+  },
+
+  removeFavorite: async (activityId: string): Promise<FavoriteIdsResponse> => {
+    return api.delete(`/users/favorites/${activityId}`);
   },
 };
