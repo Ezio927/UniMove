@@ -3,6 +3,7 @@ import { Activity, IActivity } from '../models/Activity';
 import { AuthRequest } from '../middleware/auth';
 import mongoose from 'mongoose';
 import { hasLockedActivityUpdates, pickActivityUpdates } from '../utils/activityUpdates';
+import { buildActivityCatalogQuery } from '../utils/activityQuery';
 
 export class ActivityController {
   // 创建活动
@@ -54,96 +55,28 @@ export class ActivityController {
 
   // 获取活动列表
   static async getActivities(req: AuthRequest, res: Response): Promise<void> {
-    try {
-      const {
-        page = 1,
-        limit = 10,
-        category,
-        location,
-        search,
-        startDate,
-        endDate,
-        minPrice,
-        maxPrice,
-        sortBy = 'createdAt',
-        sortOrder = 'desc'
-      } = req.query;
+    const { query, page, limit, skip, sort } = buildActivityCatalogQuery(req.query);
 
-      const query: any = { status: 'published' };
+    const [activities, total] = await Promise.all([
+      Activity.find(query)
+        .populate('organizer', 'username email avatar')
+        .sort(sort)
+        .skip(skip)
+        .limit(limit),
+      Activity.countDocuments(query)
+    ]);
 
-      // 分类筛选
-      if (category) {
-        query.category = category;
-      }
-
-      // 地点筛选
-      if (location) {
-        query.location = { $regex: location, $options: 'i' };
-      }
-
-      // 搜索
-      if (search) {
-        query.$or = [
-          { title: { $regex: search as string, $options: 'i' } },
-          { description: { $regex: search as string, $options: 'i' } },
-          { category: { $regex: search as string, $options: 'i' } },
-          { location: { $regex: search as string, $options: 'i' } }
-        ];
-      }
-
-      // 时间筛选
-      if (startDate || endDate) {
-        query.startTime = {};
-        if (startDate) {
-          query.startTime.$gte = new Date(startDate as string);
-        }
-        if (endDate) {
-          query.startTime.$lte = new Date(endDate as string);
+    res.json({
+      success: true,
+      data: {
+        activities,
+        pagination: {
+          current: page,
+          total: Math.ceil(total / limit),
+          count: total
         }
       }
-
-      // 价格筛选
-      if (minPrice || maxPrice) {
-        query.price = {};
-        if (minPrice) {
-          query.price.$gte = Number(minPrice);
-        }
-        if (maxPrice) {
-          query.price.$lte = Number(maxPrice);
-        }
-      }
-
-      const sortOptions: any = {};
-      sortOptions[sortBy as string] = sortOrder === 'desc' ? -1 : 1;
-
-      const skip = (Number(page) - 1) * Number(limit);
-
-      const [activities, total] = await Promise.all([
-        Activity.find(query)
-          .populate('organizer', 'username email avatar')
-          .sort(sortOptions)
-          .skip(skip)
-          .limit(Number(limit)),
-        Activity.countDocuments(query)
-      ]);
-
-      res.json({
-        success: true,
-        data: {
-          activities,
-          pagination: {
-            current: Number(page),
-            total: Math.ceil(total / Number(limit)),
-            count: total
-          }
-        }
-      });
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || '获取活动列表失败'
-      });
-    }
+    });
   }
 
   // 获取活动详情
