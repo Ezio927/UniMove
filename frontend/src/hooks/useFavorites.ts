@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import type { Activity } from '../api/activity';
 import { getErrorMessage } from '../api/error';
 import { userAPI } from '../api/user';
@@ -14,7 +14,7 @@ export const useFavorites = (enabled: boolean) => {
   const requestGenerationRef = useRef(0);
   const stateVersionRef = useRef(0);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     enabledRef.current = enabled;
     if (!enabled) {
       requestGenerationRef.current += 1;

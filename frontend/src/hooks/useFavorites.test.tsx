@@ -1,5 +1,5 @@
 import { act, render, renderHook, waitFor } from '@testing-library/react';
-import { Suspense, startTransition, useState } from 'react';
+import { Suspense, startTransition, useLayoutEffect, useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { userAPI } from '../api/user';
 import { useFavorites } from './useFavorites';
@@ -235,5 +235,31 @@ describe('useFavorites', () => {
     });
 
     await waitFor(() => expect(getByTestId('favorites-state')).toHaveTextContent(activity._id));
+  });
+
+  it('blocks a stale reload in the layout phase of a committed disable', async () => {
+    let setEnabled: (enabled: boolean) => void;
+    let enabledReload: (() => Promise<void>) | undefined;
+    vi.mocked(userAPI.getFavorites).mockResolvedValue({ success: true, data: { activities: [] } });
+
+    const Harness = () => {
+      const [enabled, setEnabledState] = useState(true);
+      setEnabled = setEnabledState;
+      const { favorites, reload } = useFavorites(enabled);
+      if (enabled) enabledReload = reload;
+      useLayoutEffect(() => {
+        if (!enabled) void enabledReload!();
+      }, [enabled]);
+      return <span data-testid="disabled-favorites-state">{favorites.length}</span>;
+    };
+    const { getByTestId } = render(<Harness />);
+    await waitFor(() => expect(userAPI.getFavorites).toHaveBeenCalledTimes(1));
+
+    act(() => {
+      setEnabled!(false);
+    });
+
+    await waitFor(() => expect(getByTestId('disabled-favorites-state')).toHaveTextContent('0'));
+    expect(userAPI.getFavorites).toHaveBeenCalledTimes(1);
   });
 });
