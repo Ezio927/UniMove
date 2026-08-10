@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, Card, Typography, message, Divider } from 'antd';
+import { App, Form, Input, Button, Card, Typography } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setCredentials } from '../store/authSlice';
 import { userAPI } from '../api/user';
-import './Register.css';
+import './Auth.css';
 import { getErrorMessage } from '../api/error';
 
 const { Title, Text } = Typography;
@@ -19,6 +19,7 @@ interface RegisterFormData {
 
 const Register: React.FC = () => {
   const [loading, setLoading] = useState(false);
+  const { message } = App.useApp();
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
@@ -56,9 +57,10 @@ const Register: React.FC = () => {
   };
 
   return (
-    <div className="register-container">
-      <Card className="register-card">
-        <div className="register-header">
+    <main className="auth-page">
+      <Link to="/" className="auth-brand"><span>U</span>UniMove</Link>
+      <Card className="auth-card auth-card-wide">
+        <div className="auth-header">
           <Title level={2}>注册账户</Title>
           <Text type="secondary">加入 UniMove，开始你的运动之旅</Text>
         </div>
@@ -76,7 +78,7 @@ const Register: React.FC = () => {
             name="username"
             rules={[
               { required: true, message: '请输入用户名' },
-              { min: 3, message: '用户名至少3位' },
+              { min: 2, message: '用户名至少2位' },
               { max: 20, message: '用户名最多20位' }
             ]}
           >
@@ -161,14 +163,12 @@ const Register: React.FC = () => {
           </Form.Item>
         </Form>
 
-        <Divider>或</Divider>
-        
-        <div className="register-footer">
+        <div className="auth-footer">
           <Text>已有账户？</Text>
           <Link to="/login">立即登录</Link>
         </div>
       </Card>
-    </div>
+    </main>
   );
 };
 

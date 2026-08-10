@@ -7,15 +7,14 @@ import {
   Select,
   DatePicker,
   InputNumber,
-  Upload,
-  message,
+  App,
+  Alert,
   Space,
   Row,
   Col,
   Typography
 } from 'antd';
 import {
-  PlusOutlined,
   SaveOutlined,
   CalendarOutlined,
   EnvironmentOutlined,
@@ -23,10 +22,10 @@ import {
   DollarOutlined
 } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import type { RcFile, UploadFile } from 'antd/es/upload';
 import dayjs from 'dayjs';
 import { useAppSelector } from '../store/hooks';
 import { activityAPI, type CreateActivityData } from '../api/activity';
+import { getErrorMessage } from '../api/error';
 import './CreateActivity.css';
 
 const { Title, Text } = Typography;
@@ -36,10 +35,10 @@ const { RangePicker } = DatePicker;
 
 const CreateActivity: React.FC = () => {
   const navigate = useNavigate();
+  const { message } = App.useApp();
   const { user, isAuthenticated } = useAppSelector(state => state.auth);
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
-  const [fileList, setFileList] = useState<UploadFile[]>([]);
 
   // 检查用户权限
   React.useEffect(() => {
@@ -53,31 +52,12 @@ const CreateActivity: React.FC = () => {
       navigate('/');
       return;
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate, message]);
 
   const categories = [
     '足球', '篮球', '羽毛球', '乒乓球', '网球',
-    '游泳', '跑步', '健身', '瑜伽', '登山',
-    '骑行', '滑雪', '攀岩', '其他'
+    '游泳', '跑步', '健身', '其他'
   ];
-
-  const handleImageChange = ({ fileList: newFileList }: { fileList: UploadFile[] }) => {
-    setFileList(newFileList);
-  };
-
-  const beforeUpload = (file: RcFile) => {
-    const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
-    if (!isJpgOrPng) {
-      message.error('只能上传 JPG/PNG 格式的图片!');
-      return false;
-    }
-    const isLt2M = file.size / 1024 / 1024 < 2;
-    if (!isLt2M) {
-      message.error('图片大小不能超过 2MB!');
-      return false;
-    }
-    return false; // 阻止自动上传，手动处理
-  };
 
 interface FormValues {
   title: string;
@@ -93,15 +73,7 @@ interface FormValues {
   const onFinish = async (values: FormValues) => {
     setLoading(true);
     try {
-      // 处理时间范围
       const [startTime, endTime] = values.timeRange;
-      
-      // 处理图片上传 (这里简化处理，实际项目中需要先上传图片获取URL)
-      const images: string[] = [];
-      // if (fileList.length > 0) {
-      //   // 实际项目中需要先上传图片到服务器获取URL
-      //   images = ['placeholder-image-url'];
-      // }
 
       const activityData: CreateActivityData = {
         title: values.title,
@@ -112,7 +84,6 @@ interface FormValues {
         endTime: endTime.toISOString(),
         maxParticipants: values.maxParticipants,
         price: values.price || 0,
-        images,
         tags: values.tags || []
       };
 
@@ -124,19 +95,12 @@ interface FormValues {
       } else {
         message.error(response.message || '创建活动失败');
       }
-    } catch {
-      message.error('创建活动失败，请稍后重试');
+    } catch (error) {
+      message.error(getErrorMessage(error, '创建活动失败，请稍后重试'));
     } finally {
       setLoading(false);
     }
   };
-
-  const uploadButton = (
-    <div>
-      <PlusOutlined />
-      <div style={{ marginTop: 8 }}>上传图片</div>
-    </div>
-  );
 
   return (
     <div className="create-activity-container">
@@ -162,8 +126,7 @@ interface FormValues {
                 name="title"
                 rules={[
                   { required: true, message: '请输入活动标题' },
-                  { min: 3, message: '标题至少3个字符' },
-                  { max: 50, message: '标题最多50个字符' }
+                  { max: 100, message: '标题最多100个字符' }
                 ]}
               >
                 <Input
@@ -195,13 +158,13 @@ interface FormValues {
             name="description"
             rules={[
               { required: true, message: '请输入活动描述' },
-              { min: 10, message: '描述至少10个字符' }
+              { max: 2000, message: '描述最多2000个字符' }
             ]}
           >
             <TextArea
               rows={4}
               placeholder="详细描述活动内容、规则、注意事项等..."
-              maxLength={1000}
+              maxLength={2000}
               showCount
             />
           </Form.Item>
@@ -211,10 +174,11 @@ interface FormValues {
               <Form.Item
                 label="活动地点"
                 name="location"
-                rules={[{ required: true, message: '请输入活动地点' }]}
+                rules={[{ required: true, whitespace: true, message: '请输入活动地点' }, { max: 200, message: '地点最多200个字符' }]}
               >
                 <Input
                   placeholder="请输入活动地点"
+                  maxLength={200}
                   prefix={<EnvironmentOutlined />}
                 />
               </Form.Item>
@@ -288,20 +252,7 @@ interface FormValues {
             </Col>
           </Row>
 
-          <Form.Item label="活动图片">
-            <Upload
-              listType="picture-card"
-              fileList={fileList}
-              onChange={handleImageChange}
-              beforeUpload={beforeUpload}
-              maxCount={5}
-            >
-              {fileList.length >= 5 ? null : uploadButton}
-            </Upload>
-            <Text type="secondary">
-              最多上传5张图片，支持 JPG、PNG 格式，单张图片不超过 2MB
-            </Text>
-          </Form.Item>
+          <Alert showIcon type="info" message="图片上传暂未开放" description="活动创建后会使用统一占位图，不影响发布和报名。" />
 
           <Form.Item className="form-actions">
             <Space size="large">
