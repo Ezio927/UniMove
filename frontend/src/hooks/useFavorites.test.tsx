@@ -1,4 +1,5 @@
-import { act, renderHook, waitFor } from '@testing-library/react';
+import { act, render, renderHook, waitFor } from '@testing-library/react';
+import { Suspense, startTransition, useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { userAPI } from '../api/user';
 import { useFavorites } from './useFavorites';
@@ -195,5 +196,44 @@ describe('useFavorites', () => {
     expect(result.current.favorites).toEqual([]);
     expect(result.current.favoriteIds.size).toBe(0);
     expect(userAPI.getFavorites).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps an active request when a disabling render is interrupted before commit', async () => {
+    let resolveFavorites: (value: { success: boolean; data: { activities: typeof activity[] } }) => void;
+    let setEnabled: (enabled: boolean) => void;
+    let suspended = false;
+    const getFavorites = new Promise<{ success: boolean; data: { activities: typeof activity[] } }>(resolve => {
+      resolveFavorites = resolve;
+    });
+    const pendingRender = new Promise<never>(() => undefined);
+    vi.mocked(userAPI.getFavorites).mockReturnValue(getFavorites);
+
+    const Harness = () => {
+      const [enabled, setEnabledState] = useState(true);
+      setEnabled = setEnabledState;
+      const { favorites, loading } = useFavorites(enabled);
+      if (!enabled) {
+        suspended = true;
+        throw pendingRender;
+      }
+      return <span data-testid="favorites-state">{loading ? 'loading' : favorites.map(item => item._id).join(',')}</span>;
+    };
+    const { getByTestId } = render(<Suspense fallback={<span>fallback</span>}><Harness /></Suspense>);
+    await waitFor(() => expect(getByTestId('favorites-state')).toHaveTextContent('loading'));
+
+    act(() => {
+      startTransition(() => setEnabled!(false));
+    });
+    await waitFor(() => expect(suspended).toBe(true));
+    act(() => {
+      setEnabled!(true);
+    });
+
+    await act(async () => {
+      resolveFavorites!({ success: true, data: { activities: [activity] } });
+      await getFavorites;
+    });
+
+    await waitFor(() => expect(getByTestId('favorites-state')).toHaveTextContent(activity._id));
   });
 });

@@ -14,25 +14,22 @@ export const useFavorites = (enabled: boolean) => {
   const requestGenerationRef = useRef(0);
   const stateVersionRef = useRef(0);
 
-  if (enabledRef.current !== enabled) {
+  useEffect(() => {
     enabledRef.current = enabled;
     if (!enabled) {
       requestGenerationRef.current += 1;
       stateVersionRef.current += 1;
-    }
-  }
-
-  const reload = useCallback(async () => {
-    if (!enabled) {
+      mutatingIdRef.current = null;
+      setMutatingId(null);
       setFavorites([]);
       setFavoriteIds(new Set());
       setError(null);
       setLoading(false);
-      mutatingIdRef.current = null;
-      setMutatingId(null);
-      return;
     }
-    if (!enabledRef.current) return;
+  }, [enabled]);
+
+  const reload = useCallback(async () => {
+    if (!enabled || !enabledRef.current) return;
 
     const requestGeneration = ++requestGenerationRef.current;
     setLoading(true);
