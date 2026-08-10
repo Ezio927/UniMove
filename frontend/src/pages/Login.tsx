@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, Card, Typography, message, Divider } from 'antd';
+import { App, Form, Input, Button, Card, Typography } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setCredentials } from '../store/authSlice';
 import { userAPI } from '../api/user';
-import './Login.css';
+import './Auth.css';
 import { getErrorMessage } from '../api/error';
 
 const { Title, Text } = Typography;
@@ -17,6 +17,7 @@ interface LoginFormData {
 
 const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
+  const { message } = App.useApp();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const { isAuthenticated } = useAppSelector(state => state.auth);
@@ -50,9 +51,10 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="login-container">
-      <Card className="login-card">
-        <div className="login-header">
+    <main className="auth-page">
+      <Link to="/" className="auth-brand"><span>U</span>UniMove</Link>
+      <Card className="auth-card">
+        <div className="auth-header">
           <Title level={2}>登录</Title>
           <Text type="secondary">欢迎回到 UniMove</Text>
         </div>
@@ -104,14 +106,12 @@ const Login: React.FC = () => {
           </Form.Item>
         </Form>
 
-        <Divider>或</Divider>
-        
-        <div className="login-footer">
+        <div className="auth-footer">
           <Text>还没有账户？</Text>
           <Link to="/register">立即注册</Link>
         </div>
       </Card>
-    </div>
+    </main>
   );
 };
 
