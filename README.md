@@ -6,7 +6,7 @@ UniMove 是面向校园体育活动的全栈 Web 应用。它提供活动浏览�
 
 - 前端：React 19、TypeScript、Vite 7、Ant Design 5、Redux Toolkit
 - 后端：Node.js 22、Express 4、TypeScript、MongoDB 7、Mongoose 8
-- 质量与安全：Vitest、ESLint、GitHub Actions、GitLab CI、JWT、bcrypt、Helmet、CORS、速率限制、Zod
+- 质量与安全：Vitest、ESLint、GitHub Actions、GitLab CI、JWT、bcryptjs、Helmet、CORS、速率限制、Zod
 
 ## 安装
 
@@ -51,7 +51,7 @@ npm run import-data
 
 ## Docker 分发
 
-核心 Compose 栈仅包含 MongoDB、backend 和 frontend。它不发布 MongoDB 或 backend 的宿主机端口；浏览器只经由前端反向代理访问 `/api`。前端仅绑定回环地址 `127.0.0.1:80`，因此默认只可由运行 Docker 的主机访问。
+核心 Compose 栈仅包含 MongoDB、backend 和 frontend。它不发布 MongoDB 或 backend 的宿主机端口；浏览器只经由前端反向代理访问 `/api`。前端仅绑定回环地址 `127.0.0.1:80`，因此默认只可由运行 Docker 的主机访问。浏览器可使用 `http://127.0.0.1` 或 `http://localhost`；backend 的 Compose CORS allowlist 同时允许这两个精确 Origin，但端口仍只绑定于本机回环接口。
 
 启动前在当前 shell 设置一次性变量；不要将生产凭据提交到 `.env` 或仓库。`MONGO_ROOT_PASSWORD_URI` 必须是与 `MONGO_ROOT_PASSWORD` 相同的密码、按 URI 百分号编码后的值：
 
@@ -111,4 +111,4 @@ UniMove/
 
 ## 第三方技术与许可证
 
-本项目使用上述开源运行时、框架和工具，具体依赖及其许可证以各子项目的 `package-lock.json`、`package.json` 与 Docker 镜像声明为准。本仓库代码按 [MIT License](LICENSE) 发布。
+本项目使用上述开源运行时、框架和工具，具体依赖及其许可证以各子项目的 `package-lock.json`、`package.json` 与 Docker 镜像声明为准。根许可证以及 backend 的 `package.json`/`package-lock.json` 根包元数据均为 MIT；本仓库代码按 [MIT License](LICENSE) 发布。

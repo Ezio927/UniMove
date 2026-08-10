@@ -26,7 +26,7 @@ $env:MONGO_ROOT_PASSWORD_URI = [System.Uri]::EscapeDataString($env:MONGO_ROOT_PA
 $env:JWT_SECRET = 'at-least-32-characters-for-production-validation'
 ```
 
-不要用未编码的密码替代 `MONGO_ROOT_PASSWORD_URI`；密码中的 `@`、`:`、`/`、`?` 等字符会改变 URI 解析结果。
+不要用未编码的密码替代 `MONGO_ROOT_PASSWORD_URI`；密码中的 `@`、`:`、`/`、`?` 等字符会改变 URI 解析结果。Compose 无法判断原始值与编码值是否等价，这一对应关系必须由设置变量的人通过同一原始密码生成来保证。
 
 ## 启动核心栈
 
@@ -37,10 +37,11 @@ docker compose ps
 
 Docker 会按健康状态排序启动：MongoDB 健康后启动 backend，backend 健康后启动 frontend。服务地址：
 
-- 应用与前端健康检查：`http://127.0.0.1/`、`http://127.0.0.1/health`
+- 应用入口：`http://127.0.0.1/` 或 `http://localhost/`
+- 前端健康检查：`http://127.0.0.1/health` 或 `http://localhost/health`
 - 经前端代理的 backend 健康检查：`http://127.0.0.1/api/health`
 
-预期结果是 `/health` 返回 `200 ok`，`/api/health` 返回 HTTP 200 且 JSON 中有 `success: true` 与数据库连接状态。核心栈中不存在 `localhost:3001`、`localhost:27017` 或 `localhost:5173` 的 Docker 服务端口。
+预期结果是 `/health` 返回 `200 ok`，`/api/health` 返回 HTTP 200 且 JSON 中有 `success: true` 与数据库连接状态。Compose 为 backend 配置 `http://localhost` 和 `http://127.0.0.1` 两个精确 CORS Origin；两种浏览器入口均已通过运行时响应头验证。核心栈中不存在 `localhost:3001`、`localhost:27017` 或 `localhost:5173` 的 Docker 服务端口。
 
 ## 可选 Mongo Express 工具
 
@@ -64,7 +65,7 @@ docker compose logs -f
 docker compose logs -f backend
 docker compose logs -f frontend
 
-# 检查变量插值与最终 Compose 配置（不启动容器）
+# 检查必需变量是否存在，并查看插值后的 Compose 配置（不启动容器）
 docker compose config
 docker compose -f docker-compose.yml -f docker-compose.tools.yml config
 
@@ -75,11 +76,13 @@ docker compose up -d --build
 docker compose down
 ```
 
+`docker compose config` 会把解析后的环境变量（包括秘密）输出到终端。只用临时值执行，不要分享、重定向或保存输出。该命令能发现缺失变量并显示最终渲染结果，但不能证明 `MONGO_ROOT_PASSWORD_URI` 与原始密码等价，也不能替代运行时认证测试。
+
 如需从头构建镜像，可运行 `docker compose build --no-cache`，再执行 `docker compose up -d`。`docker compose down -v` 会删除命名卷，`docker system prune` 会影响不相关的 Docker 资源；两者都不是常规排障或停止步骤，只应在明确确认目标和数据备份后使用。
 
 ## 排障与限制
 
-- 先运行 `docker compose config`：未设置变量或 URI 编码错误会在此暴露。
+- 先用临时值运行 `docker compose config`：它会发现未设置变量并显示 URI 的渲染结果；编码是否来自同一原始密码仍须由使用者保证。
 - 若服务没有变为 healthy，使用 `docker compose logs <service>` 检查；backend 的 JWT 密钥不满足最少长度会阻止启动。
 - 若端口 80 或 8081 被占用，应先识别占用者或在受控环境中调整回环映射；不要为了方便暴露 backend/MongoDB。
 - `/api/health` 当前检查的是 Mongoose 连接状态，未额外执行数据库读操作。

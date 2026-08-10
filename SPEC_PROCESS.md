@@ -16,22 +16,24 @@ UniMove 是学生已有项目。2026-08-10 起，课程工作以该项目为 B �
 
 ## P8：质量命令与 CI
 
-`infra_root_commands` 根据 Task 1 brief 创建根命令契约，`review_root_commands` 独立检查脚本、锁文件和 README 约束。`e4c4f84fce0a1d44933c29b25bfd7d950d7e9025` 增加 Node `>=22.12.0` 的根 `package.json` 与 `package-lock.json`：`npm test` 顺序运行前后端测试，`npm run verify` 顺序运行 lint、类型检查、测试和构建。
+`infra_root_commands`（`gpt-5.6-terra` / medium）根据 Task 1 brief 创建根命令契约，`review_root_commands`（同模型/effort）只读 brief、报告和 diff，独立检查脚本、锁文件和 README 约束。`e4c4f84fce0a1d44933c29b25bfd7d950d7e9025` 增加 Node `>=22.12.0` 的根 `package.json` 与 `package-lock.json`：`npm test` 顺序运行前后端测试，`npm run verify` 顺序运行 lint、类型检查、测试和构建。
 
-`infra_ci` 根据 Task 2 brief 增加 GitLab `test`/`quality` 阶段及 GitHub 双 Docker Buildx 检查；`review_ci` 独立验证 YAML、锁文件缓存、context 与 `push: false`。提交 `6686bb6e5ace9b482f210a1177db77460eb09237`。Task 报告记录 `npm run verify` 退出 0，后端 14 文件/46 测试、前端 8 文件/40 测试通过；Vite chunk 建议和 jsdom pseudo-element 提示为非失败输出。
+`infra_ci`（`gpt-5.6-terra` / medium）根据 Task 2 brief 增加 GitLab `test`/`quality` 阶段及 GitHub 双 Docker Buildx 检查；`review_ci`（`gpt-5.6-terra` / high）只读验证 YAML、锁文件缓存、context 与 `push: false`。提交 `6686bb6e5ace9b482f210a1177db77460eb09237`。Task 报告记录 `npm run verify` 退出 0，后端 14 文件/46 测试、前端 8 文件/40 测试通过；Vite chunk 建议和 jsdom pseudo-element 提示为非失败输出。
 
 ## P9：Docker 分发与文档
 
-`infra_docker` 按 Task 3 brief 实现容器发布，`review_docker` 按规约、安全、运行时边界复审。第一次本机启动被一个预存、无标签的 `unimove-mongodb` 容器名称冲突阻断；未经学生授权，该容器未被删除。复审后以 `826f518` 移除所有 `container_name`，使 Compose 项目名隔离容器，并修复以下 Important 问题：
+`infra_docker`（`gpt-5.6-terra` / high）按 Task 3 brief 实现容器发布，`review_docker`（`gpt-5.6-sol` / high）按规约、安全、运行时边界复审。第一次本机启动被一个预存、无标签的 `unimove-mongodb` 容器名称冲突阻断；未经学生授权，该容器未被删除。复审后以 `826f518` 移除所有 `container_name`，使 Compose 项目名隔离容器，并修复以下 Important 问题：
 
 - 核心栈不再发布 MongoDB 或 backend 端口；frontend 为 `127.0.0.1:80:80`。
 - 可选 Mongo Express 只由 `docker-compose.tools.yml` 添加，绑定 `127.0.0.1:8081:8081` 并启用基本认证。
 - `MONGO_ROOT_PASSWORD` 是 Mongo 初始化/认证的原始密码；`MONGO_ROOT_PASSWORD_URI` 是相同值的 URI 百分号编码形式，只用于 backend 和 Mongo Express URI。
 - Mongo 认证健康检查安全引用容器变量；nginx 同时监听 IPv4/IPv6，使其内置 `wget localhost /health` 探针可靠。
 
-使用一次性、进程本地 dummy secrets（含带保留字符的密码）验证核心和 tools Compose 渲染。镜像构建通过；临时 `unimove-validation` 项目成功启动，三个服务均 healthy，`GET http://127.0.0.1/health` 为 `200 ok`，`GET http://127.0.0.1/api/health` 为 `200`、`success=True`、`database=connected`。第一次启动使用了短 JWT，backend 现有生产校验拒绝它；改用至少 32 字符的临时 JWT 后成功。清理只执行该临时项目的 `down`，不使用 `-v`，不删除预存资源。
+使用一次性、进程本地 dummy secrets（含带保留字符的密码）验证核心和 tools Compose 渲染。镜像构建通过；临时 `unimove-validation` 项目成功启动，三个服务均 healthy，`GET http://127.0.0.1/health` 为 `200 ok`，`GET http://127.0.0.1/api/health` 为 `200`、`success=True`、`database=connected`。第一次启动使用了短 JWT，backend 现有生产校验拒绝它；改用至少 32 字符的临时 JWT 后成功。`03b1efb` 将 Compose CORS allowlist 改为 `http://localhost,http://127.0.0.1`，并统一 backend manifest/lockfile 与根 MIT License；两个 Origin 的运行时请求均返回 200 和对应的 `Access-Control-Allow-Origin`。`review_docker` 复审 APPROVE，无新 Critical/Important。清理只执行该临时项目的 `down`，不使用 `-v`，不删除预存资源。
 
-`infra_docs` 将这些已验证事实写入 README、Docker 指南、计划和协作日志。文档不再提及不存在的 `docker-manage.bat`、`docker-compose` 旧命令、Compose 开发热重载或将 `down -v`/`docker system prune` 作为常规步骤。最终门禁与凭据扫描结果保存在 Task 4 report；P8/P9 仅在这些命令均通过后标记完成。
+`infra_docs`（`gpt-5.6-terra` / high）将这些已验证事实写入 README、Docker 指南、计划和协作日志，首轮提交为 `71cb693`。`review_infra_docs`（`gpt-5.6-sol` / high）只读 Task 4 brief、报告和 diff，发现 2 项 Important：课程证据遗漏实际技能、模型/effort、reviewer/提交与 whole-branch review 状态；Docker 指南夸大 `compose config` 的校验能力且未提示解析后的秘密会输出。本修复轮据此明确：raw/encoded 等价由变量设置者保证，配置命令只检查缺失并显示渲染；只用临时值且不分享、重定向或保存输出。
+
+提交基础设施阶段实际使用 `superpowers:using-git-worktrees`、`superpowers:subagent-driven-development`、`superpowers:requesting-code-review`、`superpowers:receiving-code-review` 和 `superpowers:verification-before-completion`；设计/计划使用 `superpowers:brainstorming`、`superpowers:writing-plans`。`superpowers:finishing-a-development-branch` 未发生。Task 4 定向审查已经发生，但 whole-branch review 尚未发生，保持 pending。
 
 ## 当前限制和后续
 
