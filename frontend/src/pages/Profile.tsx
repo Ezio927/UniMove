@@ -41,6 +41,7 @@ const { Title, Text } = Typography;
 const { TabPane } = Tabs;
 
 const Profile: React.FC = () => {
+  const [favoriteActionAttempted, setFavoriteActionAttempted] = React.useState(false);
   const {
     user, editModalVisible, setEditModalVisible, loading, orders, comments,
     ordersLoading, commentsLoading, editCommentModalVisible,
@@ -50,6 +51,16 @@ const Profile: React.FC = () => {
   } = useProfile();
   const { favorites, loading: favoritesLoading, error: favoritesError, mutatingId,
     toggleFavorite, reload } = useFavorites(Boolean(user));
+
+  const handleToggleFavorite = (activityId: string) => {
+    setFavoriteActionAttempted(true);
+    void toggleFavorite(activityId);
+  };
+
+  const retryFavorites = () => {
+    setFavoriteActionAttempted(false);
+    void reload();
+  };
 
   const orderColumns = [
     {
@@ -280,17 +291,19 @@ const Profile: React.FC = () => {
           </TabPane>
 
           <TabPane tab="我的收藏" key="favorites" icon={<HeartOutlined />}>
-            {favoritesLoading ? <Skeleton active /> : favoritesError ? (
-              <Alert showIcon type="error" message="收藏加载失败" description={favoritesError}
-                action={<Button onClick={() => void reload()}>重试</Button>} />
-            ) : favorites.length ? (
-              <Row gutter={[20, 20]} className="profile-favorites-grid">
-                {favorites.map(activity => <Col xs={24} md={12} lg={8} key={activity._id}>
-                  <ActivityCard activity={activity} showActions={false} isFavorite
-                    onToggleFavorite={toggleFavorite} favoriteLoading={mutatingId === activity._id} />
-                </Col>)}
-              </Row>
-            ) : <Empty description="暂无收藏活动" />}
+            {favoritesLoading ? <div role="status" aria-label="正在加载收藏活动"><Skeleton active /></div> : <>
+              {favoritesError && <Alert showIcon type="error"
+                message={favoriteActionAttempted ? '收藏操作失败' : '收藏加载失败'} description={favoritesError}
+                action={<Button onClick={retryFavorites}>重试</Button>} />}
+              {(!favoritesError || favoriteActionAttempted) && (favorites.length ? (
+                <Row gutter={[20, 20]} className="profile-favorites-grid">
+                  {favorites.map(activity => <Col xs={24} md={12} lg={8} key={activity._id}>
+                    <ActivityCard activity={activity} showActions={false} isFavorite
+                      onToggleFavorite={handleToggleFavorite} favoriteLoading={mutatingId === activity._id} />
+                  </Col>)}
+                </Row>
+              ) : <Empty description="暂无收藏活动" />)}
+            </>}
           </TabPane>
 
           <TabPane tab="账户信息" key="account" icon={<UserOutlined />}>

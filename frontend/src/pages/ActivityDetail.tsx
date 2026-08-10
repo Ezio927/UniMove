@@ -10,8 +10,9 @@ import './ActivityDetail.css';
 
 const ActivityDetail: React.FC = () => {
   const navigate = useNavigate();
+  const [favoriteActionAttempted, setFavoriteActionAttempted] = React.useState(false);
   const { isAuthenticated } = useAppSelector(state => state.auth);
-  const { favoriteIds, mutatingId, toggleFavorite } = useFavorites(isAuthenticated);
+  const { favoriteIds, error: favoritesError, mutatingId, toggleFavorite, reload: reloadFavorites } = useFavorites(isAuthenticated);
   const { activity, comments, statistics, loading, commentsLoading, error, enrolling, cancelling,
     commentModalVisible, setCommentModalVisible, commentLoading, userEnrollmentStatus, canComment,
     isOrganizer, form, handleEnroll, handleCancelEnrollment, handleComment, retry } = useActivityDetail();
@@ -29,7 +30,12 @@ const ActivityDetail: React.FC = () => {
       navigate('/login');
       return;
     }
+    setFavoriteActionAttempted(true);
     void toggleFavorite(activity._id);
+  };
+  const retryFavorites = () => {
+    setFavoriteActionAttempted(false);
+    void reloadFavorites();
   };
 
   return (
@@ -60,6 +66,9 @@ const ActivityDetail: React.FC = () => {
             icon={isFavorite ? <HeartFilled /> : <HeartOutlined />} onClick={handleFavorite}>
             {isFavorite ? '取消收藏' : '收藏活动'}
           </Button>
+          {favoritesError && <Alert showIcon type="error"
+            message={favoriteActionAttempted ? '收藏操作失败' : '收藏加载失败'} description={favoritesError}
+            action={<Button onClick={retryFavorites}>重试</Button>} />}
         </Card>
       </section>
 

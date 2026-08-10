@@ -1,12 +1,12 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import ActivityDetail from './ActivityDetail';
-import { useActivityDetail } from '../hooks/useActivityDetail';
+import ActivityList from './ActivityList';
+import { useActivityCatalog } from '../hooks/useActivityCatalog';
 import { useFavorites } from '../hooks/useFavorites';
 import { useAppSelector } from '../store/hooks';
 
-vi.mock('../hooks/useActivityDetail', () => ({ useActivityDetail: vi.fn() }));
+vi.mock('../hooks/useActivityCatalog', () => ({ useActivityCatalog: vi.fn() }));
 vi.mock('../hooks/useFavorites', () => ({ useFavorites: vi.fn() }));
 vi.mock('../store/hooks', () => ({ useAppSelector: vi.fn() }));
 
@@ -18,30 +18,41 @@ const activity = {
   participants: [], createdAt: '2026-08-10T00:00:00.000Z', updatedAt: '2026-08-10T00:00:00.000Z'
 };
 
+const catalogState = {
+  activities: [activity], loading: false, error: null, userOrders: [],
+  pagination: { current: 1, total: 1, pageSize: 9 }, setPagination: vi.fn(), joining: null,
+  joinActivity: vi.fn(), leaveActivity: vi.fn()
+};
+
+const renderList = () => render(
+  <MemoryRouter initialEntries={['/activities']}>
+    <Routes>
+      <Route path="/activities" element={<ActivityList />} />
+      <Route path="/login" element={<div>登录页面</div>} />
+    </Routes>
+  </MemoryRouter>
+);
+
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
 });
 
-describe('ActivityDetail', () => {
-  it('lets an authenticated organizer favorite their own activity', () => {
+describe('ActivityList favorites', () => {
+  it('takes a guest to login when they try to favorite an activity', () => {
     const toggleFavorite = vi.fn();
-    vi.mocked(useAppSelector).mockImplementation(selector => selector({ auth: { isAuthenticated: true } } as never));
+    vi.mocked(useAppSelector).mockImplementation(selector => selector({ auth: { isAuthenticated: false } } as never));
+    vi.mocked(useActivityCatalog).mockReturnValue(catalogState as never);
     vi.mocked(useFavorites).mockReturnValue({
-      favorites: [], favoriteIds: new Set(), loading: false, error: null, mutatingId: null, toggleFavorite, reload: vi.fn()
+      favorites: [], favoriteIds: new Set(), loading: false, error: null, mutatingId: null,
+      toggleFavorite, reload: vi.fn()
     });
-    vi.mocked(useActivityDetail).mockReturnValue({
-      activity, comments: [], statistics: null, loading: false, commentsLoading: false, error: null,
-      enrolling: false, cancelling: false, commentModalVisible: false, setCommentModalVisible: vi.fn(),
-      commentLoading: false, userEnrollmentStatus: false, canComment: false, isOrganizer: true,
-      form: undefined, handleEnroll: vi.fn(), handleCancelEnrollment: vi.fn(), handleComment: vi.fn(), retry: vi.fn()
-    } as never);
 
-    render(<MemoryRouter><ActivityDetail /></MemoryRouter>);
-
-    expect(screen.getByText('这是你创建的活动')).toBeInTheDocument();
+    renderList();
     fireEvent.click(screen.getByRole('button', { name: '收藏活动' }));
-    expect(toggleFavorite).toHaveBeenCalledWith(activity._id);
+
+    expect(screen.getByText('登录页面')).toBeInTheDocument();
+    expect(toggleFavorite).not.toHaveBeenCalled();
   });
 
   it('shows one retryable error after a favorite action fails', () => {
@@ -52,18 +63,17 @@ describe('ActivityDetail', () => {
       mutatingId: null as string | null, toggleFavorite, reload
     };
     vi.mocked(useAppSelector).mockImplementation(selector => selector({ auth: { isAuthenticated: true } } as never));
+    vi.mocked(useActivityCatalog).mockReturnValue(catalogState as never);
     vi.mocked(useFavorites).mockImplementation(() => favoritesState);
-    vi.mocked(useActivityDetail).mockReturnValue({
-      activity, comments: [], statistics: null, loading: false, commentsLoading: false, error: null,
-      enrolling: false, cancelling: false, commentModalVisible: false, setCommentModalVisible: vi.fn(),
-      commentLoading: false, userEnrollmentStatus: false, canComment: false, isOrganizer: false,
-      form: undefined, handleEnroll: vi.fn(), handleCancelEnrollment: vi.fn(), handleComment: vi.fn(), retry: vi.fn()
-    } as never);
 
-    const view = render(<MemoryRouter><ActivityDetail /></MemoryRouter>);
+    const view = renderList();
     fireEvent.click(screen.getByRole('button', { name: '收藏活动' }));
     favoritesState = { ...favoritesState, error: '收藏请求失败' };
-    view.rerender(<MemoryRouter><ActivityDetail /></MemoryRouter>);
+    view.rerender(
+      <MemoryRouter initialEntries={['/activities']}>
+        <Routes><Route path="/activities" element={<ActivityList />} /></Routes>
+      </MemoryRouter>
+    );
 
     expect(screen.getByRole('alert')).toHaveTextContent('收藏操作失败');
     expect(screen.getByText('收藏请求失败')).toBeInTheDocument();
