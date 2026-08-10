@@ -1,65 +1,38 @@
-# SPEC 与 PLAN 形成过程
+# SPEC 与 PLAN 形成及提交基础设施过程
 
-## 基线说明
+## 基线与范围
 
-UniMove 是学生已有的个人项目。2026-08-10 开始以该项目为课程 B 类应用项目基线，课程范围定义为工程化交付整理和一个新的活动收藏功能。既有提交历史不被描述为 Superpowers 或 TDD 产物。
+UniMove 是学生已有项目。2026-08-10 起，课程工作以该项目为 B 类应用基线，范围是活动收藏增量及可提交的工程基础设施；既有历史提交不被描述为 Superpowers 或 TDD 产物。
 
-## Brainstorming
+## 收藏功能的形成过程
 
-主 Agent 首先审计三份课程要求和当前仓库，确认项目规模满足 B 类要求，但缺少五份过程文档、GitLab CI、统一测试入口和在线部署证据。
+先审计课程要求、仓库模块、测试、CI、Docker 和缺失交付物。随后比较三种收藏数据方案：在 `User` 保存活动 ID、建立独立 Favorite 集合、或只用浏览器 localStorage。学生批准第一种方案，因为它覆盖前后端与数据库而不扩大范围。设计保存于 `docs/superpowers/specs/2026-08-10-activity-favorites-design.md`（`39ceb4e`），实施计划保存于 `docs/superpowers/plans/2026-08-10-activity-favorites.md`（`0012748`）。
 
-针对课程增量比较了三个方案：
+冷启动 Agent `coldstart_favorites`（`gpt-5.6-terra` / high）只读取根 `SPEC.md` 与 `PLAN.md` 进行隔离试做（`91d86c2`，未合并）。它将“失效活动”擅自解释为 `cancelled`，暴露了状态、成功响应、DELETE 幂等性、缺失引用处理及排序/分页定义不足。学生决定先修正规约：只过滤数据库中不存在的活动，保留 `cancelled`/`completed`；三个成功端点均为 200；DELETE 对未收藏或已删除活动幂等；按 `createdAt` 倒序、不分页、只在读取时过滤。
 
-1. 在 User 文档保存活动 ID 数组；
-2. 建立独立 Favorite 集合；
-3. 仅使用浏览器 localStorage。
+正式实现采用 worktree 隔离、实现和审查 Agent 分离，并按 RED → GREEN → 重构保留任务证据。后端、状态和 UI 分别由 `favorites_backend`、`favorites_state`、`favorites_ui` 实现，独立复审者为对应的 `review_*` Agent。规约/质量审查发现的 Important 问题包括游客引导和 mutation 错误呈现、后端真实路由边界、`organizer` 未 populate、禁用后的 stale toggle 与 unknown 收藏状态写入；它们均先以失败测试证实，再在 `611f003`、`ecd48d6`、`b804e693be893fb269068afb45d6baf8d3416e7a`、`e35143c` 修复。审查只在所有 Critical/Important 关闭后通过。
 
-最终选择方案 1，因为它能够覆盖前后端和数据库，同时保持实现规模适合现有项目。学生确认功能范围后，主 Agent 使用 `superpowers:brainstorming` 生成设计文档，经学生审核通过。
+过程使用 `superpowers:brainstorming`、`superpowers:writing-plans`、`superpowers:using-git-worktrees`、`superpowers:subagent-driven-development`、`superpowers:test-driven-development`、`superpowers:requesting-code-review` 与 `superpowers:verification-before-completion`。仓库仅记录可验证的 prompt/context 摘要；任务报告和审查 diff 位于 gitignored `.superpowers/sdd/`，不声称保留逐字会话内容。
 
-## Writing Plans
+## P8：质量命令与 CI
 
-主 Agent 使用 `superpowers:writing-plans` 将功能拆成后端领域/API、前端状态、页面接入、最终评审四个任务。计划明确文件职责、接口、失败测试、验证命令和提交边界，并通过占位符、范围和一致性自检。
+`infra_root_commands` 根据 Task 1 brief 创建根命令契约，`review_root_commands` 独立检查脚本、锁文件和 README 约束。`e4c4f84fce0a1d44933c29b25bfd7d950d7e9025` 增加 Node `>=22.12.0` 的根 `package.json` 与 `package-lock.json`：`npm test` 顺序运行前后端测试，`npm run verify` 顺序运行 lint、类型检查、测试和构建。
 
-## 活动收藏的实现与验证证据
+`infra_ci` 根据 Task 2 brief 增加 GitLab `test`/`quality` 阶段及 GitHub 双 Docker Buildx 检查；`review_ci` 独立验证 YAML、锁文件缓存、context 与 `push: false`。提交 `6686bb6e5ace9b482f210a1177db77460eb09237`。Task 报告记录 `npm run verify` 退出 0，后端 14 文件/46 测试、前端 8 文件/40 测试通过；Vite chunk 建议和 jsdom pseudo-element 提示为非失败输出。
 
-执行环境采用 `superpowers:using-git-worktrees` 隔离 worktree，以 `superpowers:subagent-driven-development` 协调独立实现/审查 Agent，以 `superpowers:test-driven-development` 约束行为变更，并用 `superpowers:requesting-code-review` 与 `superpowers:verification-before-completion` 完成评审和验证。后续分支收尾计划使用 `superpowers:finishing-a-development-branch`，但在本记录阶段尚未执行。
+## P9：Docker 分发与文档
 
-P4 由后端实现 Agent 在 `961c0a28cd339b8d528cdeae36acd4c830351d54` 完成。任务报告记录了服务与 Controller 分别从“方法不存在”的 RED 到 4/4 GREEN；schema 语法和 Unicode 消息回归均在最终行为验证前修正。
+`infra_docker` 按 Task 3 brief 实现容器发布，`review_docker` 按规约、安全、运行时边界复审。第一次本机启动被一个预存、无标签的 `unimove-mongodb` 容器名称冲突阻断；未经学生授权，该容器未被删除。复审后以 `826f518` 移除所有 `container_name`，使 Compose 项目名隔离容器，并修复以下 Important 问题：
 
-P5 由前端状态实现 Agent 从缺失模块的 RED 开始，`7d7580a31b8f65ca743031fab3d92364be43f1fa` 实现初版，随后用 `66313e0c418ea507e360202116850838ebf5d4b4`、`e44937fd3f6f3778b02d98410cbb2c8c5bdd3e12`、`04935c4bad7d9e28219e7146d115dd644f124d49` 三次处理 Hook 审查发现的 disable 时序问题。三轮实际证据依次为 RED/GREEN 3/8→8/8、1/9→9/9、1/10→10/10。
+- 核心栈不再发布 MongoDB 或 backend 端口；frontend 为 `127.0.0.1:80:80`。
+- 可选 Mongo Express 只由 `docker-compose.tools.yml` 添加，绑定 `127.0.0.1:8081:8081` 并启用基本认证。
+- `MONGO_ROOT_PASSWORD` 是 Mongo 初始化/认证的原始密码；`MONGO_ROOT_PASSWORD_URI` 是相同值的 URI 百分号编码形式，只用于 backend 和 Mongo Express URI。
+- Mongo 认证健康检查安全引用容器变量；nginx 同时监听 IPv4/IPv6，使其内置 `wget localhost /health` 探针可靠。
 
-P6 的页面实现提交为 `cdf5d6d` 和 `d9444eb`。学生明确授权将 `frontend/src/pages/ActivityDetail.test.tsx` 纳入测试范围：该决定以规约正确性和 TDD 优先于原六文件计划限制。组织者收藏回归以 RED（无收藏按钮）开始，之后在 GREEN 中通过聚焦 2 文件的 5 个测试。
+使用一次性、进程本地 dummy secrets（含带保留字符的密码）验证核心和 tools Compose 渲染。镜像构建通过；临时 `unimove-validation` 项目成功启动，三个服务均 healthy，`GET http://127.0.0.1/health` 为 `200 ok`，`GET http://127.0.0.1/api/health` 为 `200`、`success=True`、`database=connected`。第一次启动使用了短 JWT，backend 现有生产校验拒绝它；改用至少 32 字符的临时 JWT 后成功。清理只执行该临时项目的 `down`，不使用 `-v`，不删除预存资源。
 
-P7 第一阶段审查的 3 个 Important 由 `611f003` 和 `ecd48d6` 处理并分别通过 scoped re-review：前者以页面 RED/GREEN 增加游客登录引导、可重试错误和 Profile/list/detail 验收测试；后者补充后端 404、幂等、缺失用户和真实路由边界覆盖，并在一次有效 RED 中发现、修复旧用户无收藏字段的兼容问题。
+`infra_docs` 将这些已验证事实写入 README、Docker 指南、计划和协作日志。文档不再提及不存在的 `docker-manage.bat`、`docker-compose` 旧命令、Compose 开发热重载或将 `down -v`/`docker system prune` 作为常规步骤。最终门禁与凭据扫描结果保存在 Task 4 report；P8/P9 仅在这些命令均通过后标记完成。
 
-第二阶段只读审查发现 1 个 Important：后端收藏列表没有 populate `organizer`，实际 ObjectId 不符合前端 `Activity.organizer: User` 契约，也无法供 `ActivityCard` 显示用户名和头像；前后端完整 organizer 假数据没有捕获该问题。`b804e693be893fb269068afb45d6baf8d3416e7a` 以 1/9 的有效 RED 证明缺失 populate，再以服务 9/9、真实路由 4/4 的 GREEN 增加指定字段 populate 与直接回归断言。最终只读复审无 Critical/Important，P7 完成。
+## 当前限制和后续
 
-`b804e69` 是最终应用代码提交及该轮验证 HEAD；当时门禁全部 exit 0：后端 lint、type-check、14 文件/46 测试和 build 通过；前端 lint、type-check、8 文件/28 测试和 build 通过。jsdom 的 pseudo-element 提示和 Vite 500 kB chunk 警告均不导致失败。该表述只定位历史验证批次，不把 `b804e69` 称为后续修复后的当前或最终 HEAD。
-
-Agent/context 映射为：P4 `favorites_backend` / `review_backend`，P5 `favorites_state` / `review_state`，P6 `favorites_ui` / `review_ui`（均为 `gpt-5.6-terra` / `high`）；P7 `favorites_evidence` 为 `gpt-5.6-terra` / `medium`，文档只读审查为 `review_evidence`。实现 prompt 分别以对应 task brief 和既有接口/设计契约为核心上下文，审查 prompt 使用只读 brief、报告与 diff package。学生在最终审查中作出真实人工裁定：仓库记录可核验 prompt/context 摘要，不提交冗长逐字 session prompt，也不声称 actual verbatim prompts 已保存。完整临时 task reports/diff package 位于 gitignored `.superpowers/sdd/2026-08-10-activity-favorites/`，不随仓库提交。
-
-后续最终审查发现 3 项 Important：committed disable 后 stale toggle 可写入、首次收藏状态 unknown 时可误 PUT，以及计划与证据的 prompt 留存契约冲突。`e35143c` 用实际 RED/GREEN 增加实时 enabled/ready/ID guards、页面 pending 禁用、`errorKind` 分类和 reload 清理；文档按上述人工裁定修正。原 deferred minors（API 401/403、三页错误启发式、组织者不可报名负向断言、精确 organizer DTO）也在同一波次清理。
-
-## 冷启动验证
-
-使用 `coldstart_favorites`（`gpt-5.6-terra` / `high`）这一无主对话历史的独立 Codex Agent，在 `course/coldstart-favorites` worktree 中仅以根目录 `SPEC.md` 和 `PLAN.md` 为需求材料，试做 P4 后端收藏任务。它没有读取 `AGENT_LOG.md`、`SPEC_PROCESS.md` 或 `docs/superpowers/` 下的详细资料，产出提交为 `91d86c2`。
-
-该 Agent 没有向学生提问，而是记录了五处需要自行假设的内容：
-
-1. “失效活动”没有映射到 Activity 的具体状态；它自行选择过滤 `cancelled`。
-2. 根 SPEC 没有精确规定成功状态码、消息文本和 `data` 字段。
-3. DELETE 面对已经删除的活动是否返回 404 不明确。
-4. 无效引用是只在读取时过滤，还是物理清理用户数组，不明确。
-5. 收藏列表的排序、分页和可收藏状态没有规定。
-
-试做产出提交为 `91d86c2`，后端 lint、类型检查、构建通过，Vitest 共 14 个文件、41 项测试通过。该提交仅作为冷启动证据，不直接并入正式功能分支。
-
-根据试做结果，SPEC 修订如下：
-
-- 修订前：“删除或失效的活动不出现在收藏列表。”
-- 修订后：只过滤数据库中已不存在的活动；`cancelled` 和 `completed` 仍显示。
-- 明确三个成功接口均返回 200，GET 返回 `activities`，PUT/DELETE 返回 `favoriteActivityIds`。
-- 明确 DELETE 对未收藏或已删除活动保持幂等成功。
-- 明确列表按 `createdAt` 倒序、不分页，只在读取时过滤，不物理清理历史 ID。
-
-这次验证证明仅写“失效”会让不同 Agent 合理地产生不同实现，因此正式开发前必须把领域词汇映射到具体数据库状态。
+`/api/health` 目前报告 Mongoose 连接状态而不发起额外数据库读。核心发布仅绑定回环；线上暴露必须由学生在有授权的部署平台中完成 TLS、密钥管理和网络策略。P10 部署和 P11 学生反思仍 pending；`superpowers:finishing-a-development-branch` 尚未执行。
