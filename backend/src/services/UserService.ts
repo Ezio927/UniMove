@@ -57,7 +57,9 @@ export class UserService {
     if (!user) throw new AppError(404, '\u7528\u6237\u4e0d\u5b58\u5728');
     if (!user.favoriteActivities?.length) return [];
 
-    return Activity.find({ _id: { $in: user.favoriteActivities } }).sort({ createdAt: -1 });
+    return Activity.find({ _id: { $in: user.favoriteActivities } })
+      .populate('organizer', 'username email avatar')
+      .sort({ createdAt: -1 });
   }
 
   static async addFavorite(userId: string, activityId: string) {

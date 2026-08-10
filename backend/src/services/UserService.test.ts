@@ -96,14 +96,29 @@ describe('UserService favorites', () => {
     const favoriteIds = ['507f1f77bcf86cd799439012', '507f1f77bcf86cd799439013'];
     vi.spyOn(User, 'findById').mockReturnValue({ select: vi.fn().mockResolvedValue({ favoriteActivities: favoriteIds }) } as never);
     const activities = [
-      { _id: favoriteIds[1], status: 'completed' },
-      { _id: favoriteIds[0], status: 'cancelled' }
+      {
+        _id: favoriteIds[1],
+        status: 'completed',
+        organizer: { username: 'Organizer B', email: 'b@example.com', avatar: 'b.png' }
+      },
+      {
+        _id: favoriteIds[0],
+        status: 'cancelled',
+        organizer: { username: 'Organizer A', email: 'a@example.com', avatar: 'a.png' }
+      }
     ];
     const sort = vi.fn().mockResolvedValue(activities);
-    const find = vi.spyOn(Activity, 'find').mockReturnValue({ sort } as never);
+    const populate = vi.fn().mockReturnValue({ sort });
+    const find = vi.spyOn(Activity, 'find').mockReturnValue({ populate, sort } as never);
 
     await expect(UserService.getFavorites('507f1f77bcf86cd799439011')).resolves.toEqual(activities);
     expect(find).toHaveBeenCalledWith({ _id: { $in: favoriteIds } });
+    expect(populate).toHaveBeenCalledWith('organizer', 'username email avatar');
     expect(sort).toHaveBeenCalledWith({ createdAt: -1 });
+    expect(activities[0].organizer).toEqual({
+      username: 'Organizer B',
+      email: 'b@example.com',
+      avatar: 'b.png'
+    });
   });
 });
