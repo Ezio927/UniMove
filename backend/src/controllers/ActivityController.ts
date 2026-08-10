@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { Activity, IActivity } from '../models/Activity';
 import { AuthRequest } from '../middleware/auth';
 import mongoose from 'mongoose';
+import { hasLockedActivityUpdates, pickActivityUpdates } from '../utils/activityUpdates';
 
 export class ActivityController {
   // 创建活动
@@ -215,30 +216,11 @@ export class ActivityController {
         return;
       }
 
-      const allowedFields = [
-        'title',
-        'description',
-        'category',
-        'location',
-        'startTime',
-        'endTime',
-        'maxParticipants',
-        'price',
-        'images',
-        'tags',
-        'status'
-      ] as const;
-      const updateData = Object.fromEntries(
-        Object.entries(req.body).filter(([key]) =>
-          allowedFields.includes(key as typeof allowedFields[number])
-        )
-      );
+      const updateData = pickActivityUpdates(req.body);
 
       // 如果活动已有参与者，限制某些字段的修改
       if (activity.participants.length > 0) {
-        const restrictedFields = ['startTime', 'endTime', 'maxParticipants', 'price'];
-
-        if (Object.keys(updateData).some(key => restrictedFields.includes(key))) {
+        if (hasLockedActivityUpdates(updateData)) {
           res.status(400).json({
             success: false,
             message: '活动已有参与者，不能修改时间、人数或价格'
