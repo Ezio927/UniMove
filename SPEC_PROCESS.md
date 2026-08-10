@@ -47,8 +47,10 @@ UniMove 是学生已有项目。2026-08-10 起，课程工作以该项目为 B �
 
 `895f7bb` 从 core Compose 移除初始化挂载并删除脚本；backend 继续使用 required root raw/URI pair。README、Docker/数据库/开发指南明确这是本地简化，生产须使用外部最小权限应用用户；旧卷可能保留 legacy unused user，只能在确认卷、备份和消费者后手工审计、轮换或删除。两端 `.dockerignore` 排除 `.env` 与 `.env.*`，并重新包含 `.env.example`。
 
-最终根 `npm run verify` 退出 0：backend 16 文件/53 测试、frontend 8 文件/40 测试，lint、类型检查和两端构建均完成。使用未写入文件的进程本地一次性值验证 core/tools Compose 渲染；两个镜像构建与 ignore 内容断言通过。隔离 `unimove-finalfix-runtime` 项目先达到三服务 healthy、API 200/connected；停止该项目 MongoDB 后 API 返回 503/`success: false`/disconnected；重启后恢复三服务 healthy 与 200。清理只运行该项目 `down`，未用 `-v`，容器与网络为 0、命名卷保留，预存 `d965b6c27f62` 未改变。`final_infra_review` 已发生；修复后的 whole-branch re-review 仍 pending。
+最终根 `npm run verify` 退出 0：backend 16 文件/53 测试、frontend 8 文件/40 测试，lint、类型检查和两端构建均完成。使用未写入文件的进程本地一次性值验证 core/tools Compose 渲染；两个镜像构建与 ignore 内容断言通过。隔离 `unimove-finalfix-runtime` 项目先达到三服务 healthy、API 200/connected；停止该项目 MongoDB 后 API 返回 503/`success: false`/disconnected；重启后恢复三服务 healthy 与 200。清理只运行该项目 `down`，未用 `-v`，容器与网络为 0、命名卷保留，预存 `d965b6c27f62` 未改变。
+
+`final_infra_review`（`gpt-5.6-sol` / max）随后对 `ac6d52c..90b0eab` 完成 scoped re-review，并定向复跑 `index.test.ts` 与 `importData.test.ts`：2 files/7 tests 全部通过。最终结论为 **APPROVE / Ready to merge: Yes**；原 4 项 Important 与 1 项 Minor 全部 ADDRESSED，无新 Critical/Important。本轮仍披露但不承载批准结论的 3 项 residual 是：健康检查依赖 `readyState` 而非主动 ping；本地 Compose 使用 root、生产需外部最小权限用户；旧卷 legacy user 与 seed admin 需操作者人工审计、轮换或删除。`superpowers:finishing-a-development-branch` 仍 pending。
 
 ## 当前限制和后续
 
-`/api/health` 依据 Mongoose 连接状态而不发起额外数据库读，但任何非 connected 状态均返回 503/`success: false`。Core Compose 为本地简化使用 root 账户；生产必须提供外部最小权限应用用户。核心发布仅绑定回环；线上暴露必须由学生在有授权的部署平台中完成 TLS、密钥管理和网络策略。P10 部署和 P11 学生反思仍 pending；`superpowers:finishing-a-development-branch` 尚未执行。
+`/api/health` 依据 Mongoose 连接状态而不发起额外数据库读，但任何非 connected 状态均返回 503/`success: false`。Core Compose 为本地简化使用 root 账户；生产必须提供外部最小权限应用用户。旧卷和 seed admin 的处置保持显式人工操作，不自动删除数据或账户。核心发布仅绑定回环；线上暴露必须由学生在有授权的部署平台中完成 TLS、密钥管理和网络策略。P10 部署和 P11 学生反思仍 pending；`superpowers:finishing-a-development-branch` 尚未执行。

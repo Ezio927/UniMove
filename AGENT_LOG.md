@@ -41,7 +41,9 @@
 - 健康 TDD：RED 为定向测试 2 项中 1 项失败，断开状态实际得到 200 而非 503；GREEN 为 2/2，通过后 backend 全套 15 文件/48 测试通过。最终实现仅以 Mongoose `readyState === 1` 返回 200/`success: true`，其余状态返回 503/`success: false`。
 - Seed TDD：RED 为 5/5 失败，证明缺失、过短、legacy 弱值和 production 均未被拒绝，且新 admin 收到硬编码值的散列；GREEN 为 5/5。最终 importer 要求当前进程的 `SEED_ADMIN_PASSWORD` 至少 12 字符、拒绝 legacy 弱值、production 无条件拒绝，并让 `User` 模型对该临时值执行一次散列。
 - 验证：根 `npm run verify` 退出 0（backend 16 文件/53 测试，frontend 8 文件/40 测试）；core/tools Compose 内存渲染、两个 Docker 镜像构建与 `.dockerignore` 内容断言通过。隔离项目 `unimove-finalfix-runtime` 初始三服务 healthy、API 为 200/connected；停止其 MongoDB 后 API 为 503/`success: false`/disconnected；重启后恢复三服务 healthy 与 200。清理只执行该项目的 `down`，未使用 `-v`，容器/网络均为 0，保留 1 个命名卷，预存 `d965b6c27f62` 未改变。
-- 本轮没有新的人工选择或干预；修复直接遵循已批准的最小安全方案。`final_infra_review` 已发生，但修复后的 whole-branch re-review 尚未发生，仍 pending。
+- 本轮没有新的人工选择或干预；修复直接遵循已批准的最小安全方案。
+- Scoped re-review Agent：`final_infra_review`（`gpt-5.6-sol` / max）。上下文：只读复审 `ac6d52c..90b0eab` 的集中修复、证据和范围，并定向复跑 health/seed 两个测试文件。实际结果为 2 files/7 tests 全部通过；结论为 **APPROVE / Ready to merge: Yes**，原 4 项 Important 与 1 项 Minor 全部 ADDRESSED，无新 Critical/Important。
+- Reviewer 同时披露 3 项非阻塞、non-load-bearing residual：健康端点依赖 Mongoose `readyState` 而非主动 ping；本地 Compose 为简化继续使用 root，生产须改用外部最小权限用户；旧卷中的 legacy user 与本地 seed admin 仍需操作者按文档人工审计、轮换或删除。这些披露不改变批准结论。
 
 ## 人工决策与待办
 
@@ -49,4 +51,4 @@
 - 学生未授权自动删除任何预先存在的 Docker 容器、卷或网络；验证清理仅限临时 Compose 项目且未使用 `-v`。
 - 本轮终审集中修复没有额外人工干预或范围变更。
 - P10（线上部署）和 P11（学生反思与最终提交）仍 pending；没有相应的部署或反思完成声明。
-- Task 4 定向审查与 `final_infra_review` whole-branch 终审均已发生；修复后的 whole-branch re-review 尚未发生，明确保持 pending。
+- Task 4 定向审查、`final_infra_review` whole-branch 终审及其 scoped re-review 均已发生；最新结论为 APPROVE / Ready to merge: Yes。`superpowers:finishing-a-development-branch` 仍 pending，尚未执行集成选择。
