@@ -16,6 +16,7 @@ router.use('/comments', commentRoutes);
 // 健康检查
 router.get('/health', (req, res) => {
   const dbStatus = mongoose.connection.readyState;
+  const isDatabaseConnected = dbStatus === 1;
   const dbStatusMap = {
     0: 'disconnected',
     1: 'connected',
@@ -23,8 +24,8 @@ router.get('/health', (req, res) => {
     3: 'disconnecting'
   };
 
-  res.json({
-    success: true,
+  res.status(isDatabaseConnected ? 200 : 503).json({
+    success: isDatabaseConnected,
     message: 'UniMove API is running',
     timestamp: new Date().toISOString(),
     database: {
