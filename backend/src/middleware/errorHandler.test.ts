@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { AppError } from '../errors/AppError';
+import mongoose from 'mongoose';
 import { errorHandler } from './errorHandler';
 
 const response = () => {
@@ -14,6 +15,19 @@ describe('errorHandler', () => {
     errorHandler(new AppError(422, '输入无效'), {} as never, res as never, vi.fn());
     expect(res.status).toHaveBeenCalledWith(422);
     expect(res.json).toHaveBeenCalledWith({ success: false, message: '输入无效' });
+  });
+
+  it('returns 400 for mongoose validation errors', () => {
+    const error = new mongoose.Error.ValidationError();
+    const res = response();
+    errorHandler(error, {} as never, res as never, vi.fn());
+    expect(res.status).toHaveBeenCalledWith(400);
+  });
+
+  it('returns 409 for duplicate key errors', () => {
+    const res = response();
+    errorHandler({ code: 11000, message: 'duplicate' }, {} as never, res as never, vi.fn());
+    expect(res.status).toHaveBeenCalledWith(409);
   });
 
   it('hides unexpected production error details', () => {
