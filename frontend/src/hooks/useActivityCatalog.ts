@@ -1,20 +1,23 @@
 import { useCallback, useEffect, useState } from 'react';
-import { message } from 'antd';
+import { App } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { activityAPI, type Activity, type ActivityFilters } from '../api/activity';
 import { getErrorMessage } from '../api/error';
 import { orderAPI } from '../api/order';
 
 export const useActivityCatalog = (filters: ActivityFilters, isAuthenticated: boolean) => {
+  const { message } = App.useApp();
   const [activities, setActivities] = useState<Activity[]>([]);
   const navigate = useNavigate();
   const [joining, setJoining] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [userOrders, setUserOrders] = useState<string[]>([]);
   const [pagination, setPagination] = useState({ current: 1, total: 0, pageSize: 12 });
+  const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
       const [activitiesResponse, ordersResponse] = await Promise.all([
         activityAPI.getActivities(filters),
@@ -28,7 +31,7 @@ export const useActivityCatalog = (filters: ActivityFilters, isAuthenticated: bo
         .filter(order => order.status === 'paid')
         .map(order => order.activity._id) ?? []);
     } catch (error) {
-      message.error(getErrorMessage(error, '获取活动列表失败'));
+      setError(getErrorMessage(error, '获取活动列表失败'));
     } finally {
       setLoading(false);
     }
@@ -68,6 +71,6 @@ export const useActivityCatalog = (filters: ActivityFilters, isAuthenticated: bo
     } finally { setJoining(null); }
   };
 
-  return { activities, loading, userOrders, pagination, setPagination, joining,
+  return { activities, loading, error, userOrders, pagination, setPagination, joining,
     joinActivity, leaveActivity };
 };

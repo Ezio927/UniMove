@@ -1,65 +1,20 @@
-.activity-list-page {
-  padding: 24px 0;
-}
-
-.filters-card {
-  margin-bottom: 24px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.search-section {
-  margin-bottom: 16px;
-}
-
-.filter-section {
-  margin-top: 16px;
-}
-
-.activities-section {
-  margin-bottom: 32px;
-  min-height: 400px;
-}
-
-.empty-state {
-  text-align: center;
-  padding: 48px 24px;
-  border-radius: 8px;
-}
-
-.empty-content {
-  color: #999;
-}
-
-.empty-content h3 {
-  margin: 16px 0 8px;
-  color: #333;
-}
-
-.pagination-section {
-  display: flex;
-  justify-content: center;
-  margin-top: 32px;
-}
-
-@media (max-width: 768px) {
-  .activity-list-page {
-    padding: 16px 0;
-  }
-  
-  .filters-card {
-    margin-bottom: 16px;
-  }
-  
-  .filter-section .ant-col {
-    margin-bottom: 8px;
-  }
-  
-  .activities-section {
-    margin-bottom: 24px;
-  }
-  
-  .pagination-section {
-    margin-top: 24px;
-  }
+.activity-list-page { display: grid; gap: 24px; }
+.catalog-header { display: flex; align-items: end; justify-content: space-between; gap: 24px; }
+.catalog-header h1 { margin: 4px 0 0; color: #101828; font-size: clamp(30px, 4vw, 40px); }
+.filters-card { border: 1px solid #e4e7ec; border-radius: 14px; box-shadow: 0 4px 14px rgba(16,24,40,.04); }
+.filter-grid { margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr 1fr auto; align-items: center; gap: 12px; }
+.filter-grid > .ant-select { width: 100%; }
+.filter-actions { white-space: nowrap; }
+.activities-section { min-height: 360px; }
+.activities-section .ant-row > .ant-col { display: flex; }
+.catalog-skeleton { width: 100%; min-height: 430px; padding: 24px; border: 1px solid #e4e7ec; border-radius: 14px; background: #fff; }
+.empty-state { padding: 72px 24px; border: 1px dashed #d0d5dd; border-radius: 14px; background: #fff; }
+.pagination-section { display: flex; justify-content: center; padding-top: 8px; }
+@media (max-width: 900px) { .filter-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 600px) {
+  .catalog-header { align-items: flex-start; flex-direction: column; gap: 4px; }
+  .filter-grid { grid-template-columns: 1fr; }
+  .filter-actions { width: 100%; }
+  .filter-actions .ant-btn { flex: 1; }
+  .pagination-section .ant-pagination-total-text { display: none; }
 }

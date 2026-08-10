@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Row, Col, Card, Input, Select, Button, Space, Pagination, Spin } from 'antd';
-import { SearchOutlined, FilterOutlined, ReloadOutlined } from '@ant-design/icons';
-import { useLocation } from 'react-router-dom';
+import { Alert, Button, Card, Col, Empty, Input, Pagination, Row, Select, Skeleton, Space, Typography } from 'antd';
+import { ReloadOutlined, SearchOutlined } from '@ant-design/icons';
+import { useLocation, useNavigate } from 'react-router-dom';
 import type { ActivityFilters } from '../api/activity';
 import ActivityCard from '../components/ActivityCard';
 import { useAppSelector } from '../store/hooks';
@@ -9,206 +9,86 @@ import { DEFAULT_ACTIVITY_FILTERS, parseActivityFilters, serializeActivityFilter
 import { useActivityCatalog } from '../hooks/useActivityCatalog';
 import './ActivityList.css';
 
-const { Search } = Input;
-const { Option } = Select;
+const categories = ['篮球', '足球', '羽毛球', '乒乓球', '网球', '游泳', '健身', '跑步', '其他']
+  .map(value => ({ value, label: value }));
+const sortOptions = [
+  { value: 'createdAt-desc', label: '最新发布' },
+  { value: 'startTime-asc', label: '即将开始' },
+  { value: 'price-asc', label: '价格从低到高' },
+  { value: 'price-desc', label: '价格从高到低' }
+];
 
 const ActivityList: React.FC = () => {
   const location = useLocation();
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
-  
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAppSelector(state => state.auth);
+  const [filters, setFilters] = useState<ActivityFilters>(() => parseActivityFilters(location.search));
+  const { activities, loading, error, userOrders, pagination, setPagination, joining,
+    joinActivity, leaveActivity } = useActivityCatalog(filters, isAuthenticated);
 
-  // 筛选条件
-  const [filters, setFilters] = useState<ActivityFilters>(DEFAULT_ACTIVITY_FILTERS);
-  const { activities, loading, userOrders, pagination, setPagination, joining,
-    joinActivity, leaveActivity } =
-    useActivityCatalog(filters, isAuthenticated);
-
-  // 从URL参数初始化筛选条件
   useEffect(() => {
-    const initialFilters = parseActivityFilters(location.search);
-    
-    setFilters(initialFilters);
-    setPagination(prev => ({ ...prev, current: initialFilters.page || 1 }));
+    const parsed = parseActivityFilters(location.search);
+    setFilters(parsed);
+    setPagination(previous => ({ ...previous, current: parsed.page || 1 }));
   }, [location.search, setPagination]);
 
-
-
-  // 更新URL参数
-  const updateUrlParams = (newFilters: ActivityFilters) => {
-    const newUrl = `${location.pathname}?${serializeActivityFilters(newFilters)}`;
-    window.history.replaceState({}, '', newUrl);
+  const applyFilters = (changes: Partial<ActivityFilters>) => {
+    const updated = { ...filters, ...changes, page: changes.page ?? 1 };
+    setFilters(updated);
+    navigate({ search: serializeActivityFilters(updated) }, { replace: true });
   };
 
-  // 处理筛选条件变化
-  const handleFiltersChange = (newFilters: Partial<ActivityFilters>) => {
-    const updatedFilters = {
-      ...filters,
-      ...newFilters,
-      page: newFilters.page || 1, // 筛选条件变化时重置页码
-    };
-    
-    setFilters(updatedFilters);
-    updateUrlParams(updatedFilters);
-  };
-
-  // 处理搜索
-  const handleSearch = (value: string) => {
-    handleFiltersChange({ search: value, page: 1 });
-  };
-
-  // 处理分页
-  const handlePageChange = (page: number) => {
-    handleFiltersChange({ page });
-  };
-
-  // 处理参加活动
-  const handleJoinActivity = async (activityId: string) => {
-    await joinActivity(activityId);
-  };
-
-  // 处理退出活动
-  const handleLeaveActivity = async (activityId: string) => {
-    await leaveActivity(activityId);
-  };
-
-  // 重置筛选条件
-  const handleReset = () => {
-    const resetFilters = DEFAULT_ACTIVITY_FILTERS;
-    setFilters(resetFilters);
-    updateUrlParams(resetFilters);
+  const resetFilters = () => {
+    setFilters(DEFAULT_ACTIVITY_FILTERS);
+    navigate({ search: serializeActivityFilters(DEFAULT_ACTIVITY_FILTERS) }, { replace: true });
   };
 
   return (
     <div className="activity-list-page">
-      {/* 搜索和筛选 */}
+      <header className="catalog-header">
+        <div><Typography.Text type="secondary">发现活动</Typography.Text><Typography.Title level={1}>一起动起来</Typography.Title></div>
+        {!loading && !error && <Typography.Text type="secondary">共找到 {pagination.total} 个活动</Typography.Text>}
+      </header>
+
       <Card className="filters-card">
-        <Space direction="vertical" size="large" style={{ width: '100%' }}>
-          <div className="search-section">
-            <Search
-              placeholder="搜索活动标题、描述或标签..."
-              value={filters.search}
-              onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
-              onSearch={handleSearch}
-              enterButton={<SearchOutlined />}
-              size="large"
-              allowClear
-            />
-          </div>
-          
-          <Row gutter={16} className="filter-section">
-            <Col xs={24} sm={12} md={6}>
-              <Select
-                placeholder="运动分类"
-                value={filters.category || undefined}
-                onChange={(value) => handleFiltersChange({ category: value, page: 1 })}
-                style={{ width: '100%' }}
-                allowClear
-              >
-                <Option value="篮球">篮球</Option>
-                <Option value="足球">足球</Option>
-                <Option value="羽毛球">羽毛球</Option>
-                <Option value="乒乓球">乒乓球</Option>
-                <Option value="网球">网球</Option>
-                <Option value="游泳">游泳</Option>
-                <Option value="健身">健身</Option>
-                <Option value="跑步">跑步</Option>
-                <Option value="其他">其他</Option>
-              </Select>
-            </Col>
-            
-            <Col xs={24} sm={12} md={6}>
-              <Input
-                placeholder="活动地点"
-                value={filters.location}
-                onChange={(e) => setFilters(prev => ({ ...prev, location: e.target.value }))}
-                onPressEnter={() => handleFiltersChange({ location: filters.location, page: 1 })}
-                allowClear
-              />
-            </Col>
-            
-            <Col xs={24} sm={12} md={6}>
-              <Select
-                placeholder="排序方式"
-                value={`${filters.sortBy}-${filters.sortOrder}`}
-                onChange={(value) => {
-                  const [sortBy, sortOrder] = value.split('-');
-                  handleFiltersChange({ sortBy, sortOrder: sortOrder as 'asc' | 'desc', page: 1 });
-                }}
-                style={{ width: '100%' }}
-              >
-                <Option value="createdAt-desc">最新发布</Option>
-                <Option value="startTime-asc">即将开始</Option>
-                <Option value="price-asc">价格从低到高</Option>
-                <Option value="price-desc">价格从高到低</Option>
-                <Option value="currentParticipants-desc">参与人数最多</Option>
-              </Select>
-            </Col>
-            
-            <Col xs={24} sm={12} md={6}>
-              <Space>
-                <Button
-                  icon={<FilterOutlined />}
-                  onClick={() => handleFiltersChange(filters)}
-                >
-                  筛选
-                </Button>
-                <Button
-                  icon={<ReloadOutlined />}
-                  onClick={handleReset}
-                >
-                  重置
-                </Button>
-              </Space>
-            </Col>
-          </Row>
-        </Space>
+        <Input.Search aria-label="搜索活动" placeholder="搜索活动标题、描述、分类或地点"
+          value={filters.search} size="large" allowClear enterButton={<SearchOutlined />}
+          onChange={event => setFilters(previous => ({ ...previous, search: event.target.value }))}
+          onSearch={value => applyFilters({ search: value })} />
+        <div className="filter-grid">
+          <Select aria-label="运动分类" placeholder="全部分类" value={filters.category || undefined}
+            options={categories} allowClear onChange={value => applyFilters({ category: value || '' })} />
+          <Input aria-label="活动地点" placeholder="活动地点" value={filters.location} allowClear
+            onChange={event => setFilters(previous => ({ ...previous, location: event.target.value }))}
+            onPressEnter={() => applyFilters({ location: filters.location })} />
+          <Select aria-label="排序方式" value={`${filters.sortBy}-${filters.sortOrder}`} options={sortOptions}
+            onChange={value => { const [sortBy, sortOrder] = value.split('-'); applyFilters({ sortBy, sortOrder: sortOrder as 'asc' | 'desc' }); }} />
+          <Space className="filter-actions">
+            <Button type="primary" onClick={() => applyFilters({ search: filters.search, location: filters.location })}>应用筛选</Button>
+            <Button icon={<ReloadOutlined />} onClick={resetFilters}>重置</Button>
+          </Space>
+        </div>
       </Card>
 
-      {/* 活动列表 */}
-      <Spin spinning={loading}>
-        <div className="activities-section">
-          <Row gutter={[16, 16]}>
-            {activities.map((activity) => (
-              <Col xs={24} sm={12} lg={8} xl={6} key={activity._id}>
-                <ActivityCard
-                  activity={activity}
-                  onJoin={handleJoinActivity}
-                  onLeave={handleLeaveActivity}
-                  isJoined={userOrders.includes(activity._id)}
-                  loading={joining === activity._id}
-                />
-              </Col>
-            ))}
-          </Row>
-          
-          {activities.length === 0 && !loading && (
-            <Card className="empty-state">
-              <div className="empty-content">
-                <SearchOutlined style={{ fontSize: 48, color: '#d9d9d9' }} />
-                <h3>没有找到符合条件的活动</h3>
-                <p>试试调整筛选条件或关键词</p>
-                <Button onClick={handleReset}>重置筛选条件</Button>
-              </div>
-            </Card>
-          )}
-        </div>
-      </Spin>
+      {error && <Alert showIcon type="error" message="活动加载失败" description={error} action={<Button onClick={() => applyFilters({})}>重试</Button>} />}
 
-      {/* 分页 */}
-      {pagination.total > 0 && (
-        <div className="pagination-section">
-          <Pagination
-            current={pagination.current}
-            total={pagination.total}
-            pageSize={pagination.pageSize}
-            onChange={handlePageChange}
-            showSizeChanger={false}
-            showQuickJumper
-            showTotal={(total, range) => 
-              `第 ${range[0]}-${range[1]} 条，共 ${total} 条活动`
-            }
-          />
-        </div>
+      <section className="activities-section" aria-live="polite" aria-busy={loading}>
+        {loading ? (
+          <Row gutter={[20, 20]}>{Array.from({ length: 6 }, (_, index) => <Col xs={24} md={12} lg={8} key={index}><div className="catalog-skeleton"><Skeleton active /></div></Col>)}</Row>
+        ) : activities.length > 0 ? (
+          <Row gutter={[20, 20]}>{activities.map(activity => <Col xs={24} md={12} lg={8} key={activity._id}>
+            <ActivityCard activity={activity} onJoin={joinActivity} onLeave={leaveActivity}
+              isJoined={userOrders.includes(activity._id)} loading={joining === activity._id} />
+          </Col>)}</Row>
+        ) : !error ? (
+          <div className="empty-state"><Empty description="没有找到符合条件的活动"><Button onClick={resetFilters}>清除筛选</Button></Empty></div>
+        ) : null}
+      </section>
+
+      {!loading && pagination.total > pagination.pageSize && (
+        <div className="pagination-section"><Pagination current={pagination.current} total={pagination.total}
+          pageSize={pagination.pageSize} onChange={page => applyFilters({ page })} showSizeChanger={false}
+          showTotal={total => `共 ${total} 个活动`} /></div>
       )}
     </div>
   );
