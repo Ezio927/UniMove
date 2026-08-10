@@ -1,7 +1,7 @@
 import React from 'react';
 import { Layout, Menu, Avatar, Dropdown, Button, Space } from 'antd';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { UserOutlined, LogoutOutlined, SettingOutlined, CalendarOutlined, ShoppingOutlined } from '@ant-design/icons';
+import { UserOutlined, LogoutOutlined, PlusOutlined } from '@ant-design/icons';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { logout } from '../store/authSlice';
 import './AppLayout.css';
@@ -32,24 +32,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         onClick: () => navigate('/profile'),
       },
       {
-        key: 'my-activities',
-        icon: <CalendarOutlined />,
-        label: '我的活动',
-        onClick: () => navigate('/my-activities'),
-      },
-      {
-        key: 'my-orders',
-        icon: <ShoppingOutlined />,
-        label: '我的订单',
-        onClick: () => navigate('/my-orders'),
-      },
-      {
-        key: 'settings',
-        icon: <SettingOutlined />,
-        label: '设置',
-        onClick: () => navigate('/settings'),
-      },
-      {
         type: 'divider' as const,
       },
       {
@@ -74,10 +56,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       key: '/about',
       label: <Link to="/about">关于我们</Link>,
     },
-    ...(user?.role === 'admin' ? [{
-      key: '/activities/create',
-      label: <Link to="/activities/create">创建活动</Link>,
-    }] : []),
   ];
 
   return (
@@ -86,12 +64,11 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         <div className="app-header-content">
           <div className="app-logo">
             <Link to="/">
-              <h2>🏃‍♂️ UniMove</h2>
+              <span className="logo-mark">U</span><span className="logo-text">UniMove</span>
             </Link>
           </div>
           
           <Menu
-            theme="dark"
             mode="horizontal"
             selectedKeys={[location.pathname]}
             items={menuItems}
@@ -99,6 +76,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
           />
           
           <div className="app-header-actions">
+            {isAuthenticated && user?.role === 'admin' && (
+              <Button icon={<PlusOutlined />} onClick={() => navigate('/activities/create')}>创建活动</Button>
+            )}
             {isAuthenticated ? (
               <Dropdown menu={userMenu} placement="bottomRight">
                 <Button type="text" className="user-button">
@@ -134,8 +114,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       
       <Footer className="app-footer">
         <div className="footer-content">
-          <p>© 2025 UniMove 体育场所预约系统. All rights reserved.</p>
-          <p>让运动更简单，让生活更精彩</p>
+          <p>© {new Date().getFullYear()} UniMove · 校园体育活动平台</p>
         </div>
       </Footer>
     </Layout>
