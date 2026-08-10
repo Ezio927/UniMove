@@ -3,6 +3,8 @@ import { Order, IOrder } from '../models/Order';
 import { Activity } from '../models/Activity';
 import { AuthRequest } from '../middleware/auth';
 import mongoose from 'mongoose';
+import { AppError } from '../errors/AppError';
+import { OrderService } from '../services/OrderService';
 
 export class OrderController {
   // 创建订单
@@ -100,91 +102,16 @@ export class OrderController {
 
   // 获取用户订单列表
   static async getUserOrders(req: AuthRequest, res: Response): Promise<void> {
-    try {
-      const userId = req.user?.userId;
-      const { page = 1, limit = 10, status } = req.query;
-
-      const query: any = { user: userId };
-      if (status) {
-        query.status = status;
-      }
-
-      const skip = (Number(page) - 1) * Number(limit);
-
-      const [orders, total] = await Promise.all([
-        Order.find(query)
-          .populate('activity', 'title startTime endTime location price images')
-          .sort({ createdAt: -1 })
-          .skip(skip)
-          .limit(Number(limit)),
-        Order.countDocuments(query)
-      ]);
-
-      res.json({
-        success: true,
-        data: {
-          orders,
-          pagination: {
-            current: Number(page),
-            total: Math.ceil(total / Number(limit)),
-            count: total
-          }
-        }
-      });
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || '获取订单列表失败'
-      });
-    }
+    if (!req.user) throw new AppError(401, '未认证');
+    const data = await OrderService.getForUser(req.user.userId, req.query);
+    res.json({ success: true, data });
   }
 
   // 获取订单详情
   static async getOrderById(req: AuthRequest, res: Response): Promise<void> {
-    try {
-      const { id } = req.params;
-      const userId = req.user?.userId;
-
-      if (!mongoose.Types.ObjectId.isValid(id)) {
-        res.status(400).json({
-          success: false,
-          message: '无效的订单ID'
-        });
-        return;
-      }
-
-      const order = await Order.findById(id)
-        .populate('user', 'username email phone')
-        .populate('activity', 'title description startTime endTime location price images organizer')
-        .populate('activity.organizer', 'username phone');
-
-      if (!order) {
-        res.status(404).json({
-          success: false,
-          message: '订单不存在'
-        });
-        return;
-      }
-
-      // 检查权限
-      if (order.user._id.toString() !== userId && req.user?.role !== 'admin') {
-        res.status(403).json({
-          success: false,
-          message: '无权查看此订单'
-        });
-        return;
-      }
-
-      res.json({
-        success: true,
-        data: { order }
-      });
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || '获取订单详情失败'
-      });
-    }
+    if (!req.user) throw new AppError(401, '未认证');
+    const order = await OrderService.getById(req.params.id, req.user.userId, req.user.role);
+    res.json({ success: true, data: { order } });
   }
 
   // 支付订单
@@ -372,69 +299,10 @@ export class OrderController {
 
   // 获取活动的订单列表（组织者使用）
   static async getActivityOrders(req: AuthRequest, res: Response): Promise<void> {
-    try {
-      const { activityId } = req.params;
-      const userId = req.user?.userId;
-      const { page = 1, limit = 10, status } = req.query;
-
-      if (!mongoose.Types.ObjectId.isValid(activityId)) {
-        res.status(400).json({
-          success: false,
-          message: '无效的活动ID'
-        });
-        return;
-      }
-
-      // 检查活动是否存在且用户是组织者
-      const activity = await Activity.findById(activityId);
-      if (!activity) {
-        res.status(404).json({
-          success: false,
-          message: '活动不存在'
-        });
-        return;
-      }
-
-      if (activity.organizer.toString() !== userId && req.user?.role !== 'admin') {
-        res.status(403).json({
-          success: false,
-          message: '无权查看此活动的订单'
-        });
-        return;
-      }
-
-      const query: any = { activity: activityId };
-      if (status) {
-        query.status = status;
-      }
-
-      const skip = (Number(page) - 1) * Number(limit);
-
-      const [orders, total] = await Promise.all([
-        Order.find(query)
-          .populate('user', 'username email phone avatar')
-          .sort({ createdAt: -1 })
-          .skip(skip)
-          .limit(Number(limit)),
-        Order.countDocuments(query)
-      ]);
-
-      res.json({
-        success: true,
-        data: {
-          orders,
-          pagination: {
-            current: Number(page),
-            total: Math.ceil(total / Number(limit)),
-            count: total
-          }
-        }
-      });
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        message: error.message || '获取活动订单失败'
-      });
-    }
+    if (!req.user) throw new AppError(401, '未认证');
+    const data = await OrderService.getForActivity(
+      req.params.activityId, req.user.userId, req.user.role, req.query
+    );
+    res.json({ success: true, data });
   }
 }
