@@ -59,7 +59,25 @@ FRONTEND_URL=http://localhost:5173
 
 ## 常用命令
 
-前后端目录均提供：
+在仓库根目录安装两个子项目的已锁定依赖：
+
+```bash
+npm run install:all
+```
+
+课程测试的首选命令是：
+
+```bash
+npm test
+```
+
+本地提交前和 CI 使用完整质量门禁：
+
+```bash
+npm run verify
+```
+
+如需定位某一子项目的问题，可进入对应目录执行：
 
 ```bash
 npm run lint
