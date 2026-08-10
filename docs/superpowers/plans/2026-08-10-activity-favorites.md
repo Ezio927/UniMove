@@ -192,7 +192,7 @@ git commit -m "feat: add activity favorites API"
 
 **Interfaces:**
 - Consumes: Task 1 favorite endpoints.
-- Produces: `useFavorites(enabled: boolean)` returning `favorites`, `favoriteIds`, `loading`, `error`, `mutatingId`, `toggleFavorite`, and `reload`.
+- Produces: `useFavorites(enabled: boolean)` returning `favorites`, `favoriteIds`, `loading`, `ready`, `error`, `errorKind`, `mutatingId`, `toggleFavorite`, and `reload`.
 
 - [ ] **Step 1: Write the failing hook test**
 
@@ -260,7 +260,7 @@ git commit -m "feat: add favorites client state"
 
 **Interfaces:**
 - Consumes: `useFavorites(enabled)` from Task 2.
-- Extends: `ActivityCardProps` with `isFavorite?: boolean`, `onToggleFavorite?: (activityId: string) => void`, and `favoriteLoading?: boolean`.
+- Extends: `ActivityCardProps` with `isFavorite?: boolean`, `onToggleFavorite?: (activityId: string) => void`, `favoriteLoading?: boolean`, and `favoriteDisabled?: boolean`.
 
 - [ ] **Step 1: Write failing ActivityCard interaction tests**
 
@@ -356,7 +356,7 @@ Use `superpowers:requesting-code-review`. First review conformance to the approv
 
 - [ ] **Step 3: Update course evidence**
 
-Record the actual skill names, prompts, red/green test observations, reviewer findings, human decisions, and commit hashes. Do not claim events that did not occur.
+Record the actual skill names, verifiable prompt/context summaries, red/green test observations, reviewer findings, human decisions, and commit hashes. The student explicitly ruled during final review that the repository should retain concise, auditable prompt/context summaries instead of lengthy verbatim session prompts. Do not claim that actual verbatim prompts were preserved, and do not claim events that did not occur.
 
 - [ ] **Step 4: Commit process evidence**
 

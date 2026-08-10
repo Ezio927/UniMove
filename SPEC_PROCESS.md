@@ -18,6 +18,8 @@ UniMove 是学生已有的个人项目。2026-08-10 开始以该项目为课程 
 
 ## Writing Plans
 
+主 Agent 使用 `superpowers:writing-plans` 将功能拆成后端领域/API、前端状态、页面接入、最终评审四个任务。计划明确文件职责、接口、失败测试、验证命令和提交边界，并通过占位符、范围和一致性自检。
+
 ## 活动收藏的实现与验证证据
 
 执行环境采用 `superpowers:using-git-worktrees` 隔离 worktree，以 `superpowers:subagent-driven-development` 协调独立实现/审查 Agent，以 `superpowers:test-driven-development` 约束行为变更，并用 `superpowers:requesting-code-review` 与 `superpowers:verification-before-completion` 完成评审和验证。后续分支收尾计划使用 `superpowers:finishing-a-development-branch`，但在本记录阶段尚未执行。
@@ -32,11 +34,11 @@ P7 第一阶段审查的 3 个 Important 由 `611f003` 和 `ecd48d6` 处理并�
 
 第二阶段只读审查发现 1 个 Important：后端收藏列表没有 populate `organizer`，实际 ObjectId 不符合前端 `Activity.organizer: User` 契约，也无法供 `ActivityCard` 显示用户名和头像；前后端完整 organizer 假数据没有捕获该问题。`b804e693be893fb269068afb45d6baf8d3416e7a` 以 1/9 的有效 RED 证明缺失 populate，再以服务 9/9、真实路由 4/4 的 GREEN 增加指定字段 populate 与直接回归断言。最终只读复审无 Critical/Important，P7 完成。
 
-最终新 HEAD `b804e69` 门禁全部 exit 0：后端 lint、type-check、14 文件/46 测试和 build 通过；前端 lint、type-check、8 文件/28 测试和 build 通过。jsdom 的 pseudo-element 提示和 Vite 500 kB chunk 警告均不导致失败。保留的 Minor 是成功操作后 `favoriteActionAttempted` 不复位，未来独立 reload 错误可能被误标；当前没有自动后台刷新，最终审查裁定不阻塞。
+`b804e69` 是最终应用代码提交及该轮验证 HEAD；当时门禁全部 exit 0：后端 lint、type-check、14 文件/46 测试和 build 通过；前端 lint、type-check、8 文件/28 测试和 build 通过。jsdom 的 pseudo-element 提示和 Vite 500 kB chunk 警告均不导致失败。该表述只定位历史验证批次，不把 `b804e69` 称为后续修复后的当前或最终 HEAD。
 
-Agent/context 映射为：P4 `favorites_backend` / `review_backend`，P5 `favorites_state` / `review_state`，P6 `favorites_ui` / `review_ui`（均为 `gpt-5.6-terra` / `high`）；P7 `favorites_evidence` 为 `gpt-5.6-terra` / `medium`，文档只读审查为 `review_evidence`。实现 prompt 分别以对应 task brief 和既有接口/设计契约为核心上下文，审查 prompt 使用只读 brief、报告与 diff package；完整临时 task reports/diff package 位于 gitignored `.superpowers/sdd/2026-08-10-activity-favorites/`，不随仓库提交，因此这里仅记录可核验摘要，不声称保存逐字 prompt。
+Agent/context 映射为：P4 `favorites_backend` / `review_backend`，P5 `favorites_state` / `review_state`，P6 `favorites_ui` / `review_ui`（均为 `gpt-5.6-terra` / `high`）；P7 `favorites_evidence` 为 `gpt-5.6-terra` / `medium`，文档只读审查为 `review_evidence`。实现 prompt 分别以对应 task brief 和既有接口/设计契约为核心上下文，审查 prompt 使用只读 brief、报告与 diff package。学生在最终审查中作出真实人工裁定：仓库记录可核验 prompt/context 摘要，不提交冗长逐字 session prompt，也不声称 actual verbatim prompts 已保存。完整临时 task reports/diff package 位于 gitignored `.superpowers/sdd/2026-08-10-activity-favorites/`，不随仓库提交。
 
-主 Agent 使用 `superpowers:writing-plans` 将功能拆成后端领域/API、前端状态、页面接入、最终评审四个任务。计划明确文件职责、接口、失败测试、验证命令和提交边界，并通过占位符、范围和一致性自检。
+后续最终审查发现 3 项 Important：committed disable 后 stale toggle 可写入、首次收藏状态 unknown 时可误 PUT，以及计划与证据的 prompt 留存契约冲突。`e35143c` 用实际 RED/GREEN 增加实时 enabled/ready/ID guards、页面 pending 禁用、`errorKind` 分类和 reload 清理；文档按上述人工裁定修正。原 deferred minors（API 401/403、三页错误启发式、组织者不可报名负向断言、精确 organizer DTO）也在同一波次清理。
 
 ## 冷启动验证
 

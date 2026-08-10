@@ -18,7 +18,7 @@ UniMove 的认证、活动、订单、评论、前端界面、基础测试和 Do
 - [x] P4：在独立 worktree 中实现后端收藏模型、服务和 API。依赖：P3。提交：`961c0a28cd339b8d528cdeae36acd4c830351d54`。
 - [x] P5：实现前端收藏 API 与可复用状态 Hook。依赖：P4。提交：`7d7580a31b8f65ca743031fab3d92364be43f1fa`、`66313e0c418ea507e360202116850838ebf5d4b4`、`e44937fd3f6f3778b02d98410cbb2c8c5bdd3e12`、`04935c4bad7d9e28219e7146d115dd644f124d49`。
 - [x] P6：在活动列表、详情和个人中心接入收藏界面。依赖：P5。提交：`cdf5d6d`、`d9444eb`。
-- [x] P7：执行任务级评审和全分支评审，修复重要问题。依赖：P4–P6。第一阶段 3 项 Important 由 `611f003`、`ecd48d6` 修复；第二阶段 `organizer` 契约问题由 `b804e693be893fb269068afb45d6baf8d3416e7a` 修复；最终复审无 Critical/Important。
+- [x] P7：执行任务级评审和全分支评审，修复重要问题。依赖：P4–P6。第一阶段 3 项 Important 由 `611f003`、`ecd48d6` 修复；第二阶段 `organizer` populate 问题由 `b804e693be893fb269068afb45d6baf8d3416e7a` 修复，该提交是最终应用代码提交及该轮验证 HEAD。后续最终审查发现 stale toggle、未初始化收藏态写入和证据契约 3 项 Important；代码项由 `e35143c` 以实际 RED/GREEN 修复，证据项按学生人工裁定改为保存可核验 prompt/context 摘要、不声称保存逐字 session prompt。
 - [ ] P8：增加根目录一键验证命令和 `.gitlab-ci.yml` 的 `unit-test` job。依赖：P0，可与 P4–P6 并行。
 - [ ] P9：完善 Docker、README、安全边界、分发与已知限制。依赖：P8。
 - [ ] P10：准备可访问的线上 WebUI。依赖：P9，需要部署平台账号授权。

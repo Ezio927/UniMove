@@ -23,8 +23,6 @@
 - 产物：`docs/superpowers/plans/2026-08-10-activity-favorites.md`。
 - Commit：`0012748`。
 
-## 已知流程偏离
-
 ## 2026-08-10 / P4–P7：活动收藏实现、审查与验证
 
 - 执行技能与框架：worktree 隔离使用 `superpowers:using-git-worktrees`；任务拆分与交接使用 `superpowers:subagent-driven-development`；实现纪律使用 `superpowers:test-driven-development`；评审使用 `superpowers:requesting-code-review`；完成声明前使用 `superpowers:verification-before-completion`。`superpowers:finishing-a-development-branch` 预留给后续分支收尾，本阶段尚未发生。
@@ -35,9 +33,12 @@
 - 在 `d9444eb` 上的初次 Task 4 门禁结果：后端 `lint`、`type-check`、`test`、`build` 均 exit 0，Vitest 13 文件/37 测试通过；前端同四项均 exit 0，Vitest 6 文件/20 测试通过。前端 build 有非失败的 Vite 500 kB chunk 体积警告；该结果是审查修复前的历史证据，不代替最终门禁。
 - P7 第一阶段规约审查（范围 `431803f..d9444eb`，未运行测试）发现 3 项 Important：列表页未登录收藏无登录引导；列表页和详情页未显示 mutation 失败错误；若干计划/设计验收情形没有直接自动化覆盖。`611f003` 以页面 RED/GREEN 补齐游客登录、错误恢复和 Profile/list/detail 测试；`ecd48d6` 补齐后端 404、幂等、缺失用户和真实路由边界，并修复旧用户没有 `favoriteActivities` 字段时的查询。两次 scoped re-review 均无 Critical/Important。
 - P7 第二阶段质量、安全、错误处理和测试充分性审查（范围 `431803f..ecd48d6`，只读且未运行测试）发现 1 项 Important：`getFavorites` 未 populate `organizer`，实际 ObjectId 与前端 `Activity.organizer: User` 以及 `ActivityCard` 的头像/用户名读取不匹配；现有前后端测试都以完整 organizer 假数据掩盖了该跨层问题。`b804e693be893fb269068afb45d6baf8d3416e7a` 通过先 RED（populate spy 0 次调用、1/9 失败）再 GREEN（服务 9/9、真实路由 4/4）补充 `populate('organizer', 'username email avatar')` 及直接断言。最终只读复审 Approved，无 Critical/Important。
-- P7 最终审查保留 1 项 Minor：成功收藏后 `favoriteActionAttempted` 未复位，未来独立 reload 错误可能被标为“收藏操作失败”；当前没有自动后台刷新，不阻塞完成。此前 P4 的 API 文档 401/403 小项与 P6 组织者不可报名负向断言小项也保持为 deferred minor。
-- 当前 HEAD `b804e69` 的最终质量门禁实际结果：后端 `lint`、`type-check`、`test`、`build` 均 exit 0，Vitest 14 文件/46 测试通过；前端同四项均 exit 0，Vitest 8 文件/28 测试通过。前端测试输出 jsdom `getComputedStyle` pseudo-element 非失败提示，build 输出 Vite 500 kB chunk 非失败警告。
-- Prompt/context 留存边界：完整临时 task reports 与 diff package 位于 gitignored `.superpowers/sdd/2026-08-10-activity-favorites/` 工作区，不随仓库提交；仓库只保存以上可核验摘要，不声称永久保存逐字 prompt。
+- `b804e69` 作为最终应用代码提交及该轮验证 HEAD 时的质量门禁实际结果：后端 `lint`、`type-check`、`test`、`build` 均 exit 0，Vitest 14 文件/46 测试通过；前端同四项均 exit 0，Vitest 8 文件/28 测试通过。前端测试输出 jsdom `getComputedStyle` pseudo-element 非失败提示，build 输出 Vite 500 kB chunk 非失败警告。该历史结果不表示它是后续修复后的当前或最终 HEAD。
+- 后续最终审查发现 3 项 Important：disable commit 后旧 toggle 仍可写入；首次 favorites GET pending/失败时页面和 Hook 可把 unknown 误判为未收藏并 PUT；详细计划要求 actual prompts，但仓库证据只保留摘要。`e35143c` 以真实 RED/GREEN 增加实时 enabled/ready/ID guards、`ready`/`errorKind` 契约、页面禁用与错误分类，并清理组织者负向断言和精确 DTO。
+- 此轮同时处理原 deferred minors：`favoriteActionAttempted` 从三页删除，API 文档区分 401/403，组织者测试明确不存在报名/已报名/取消报名控件。错误来源由 Hook 的 `errorKind` 决定，reload 开始时同步清理旧错误分类。
+- Prompt/context 留存边界来自学生在最终审查中的真实人工裁定：提交材料保存可核验的 prompt/context 摘要，不提交冗长逐字 session prompt，也不声称 actual verbatim prompts 已被保存。完整临时 task reports 与 diff package 位于 gitignored `.superpowers/sdd/2026-08-10-activity-favorites/` 工作区，不随仓库提交。
+
+## 已知流程偏离
 
 - UniMove 基线代码早于本课程流程，不能证明全部使用测试先行；课程增量从 P3 起严格记录。
 - 基线 UI 使用 Ant Design，没有使用 Open Design。为保持既有界面一致且控制作业范围，本增量继续使用 Ant Design。

@@ -33,7 +33,7 @@ All favorite endpoints require `Authorization: Bearer <token>` and return HTTP 2
 }
 ```
 
-An invalid `activityId` returns 400. PUT returns 404 when the activity does not exist; all three endpoints return 401 without a valid authenticated user, and return 404 if that user no longer exists.
+An invalid `activityId` returns 400, and PUT returns 404 when the activity does not exist. Authentication rejects a missing bearer token with 401, a valid token whose user is missing or inactive with 401, and an invalid or expired token with 403. Because authentication runs before the favorite routes, a missing authenticated user does not reach a route-level 404 response.
 
 默认根地址：`http://localhost:3001/api`
 
