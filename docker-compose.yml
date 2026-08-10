@@ -34,7 +34,7 @@ services:
       - MONGODB_URI=mongodb://admin:${MONGO_ROOT_PASSWORD_URI:?Set MONGO_ROOT_PASSWORD_URI to the percent-encoded MONGO_ROOT_PASSWORD}@mongodb:27017/unimove?authSource=admin
       - JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET}
       - JWT_EXPIRES_IN=7d
-      - FRONTEND_URL=http://localhost
+      - FRONTEND_URL=http://localhost,http://127.0.0.1
     depends_on:
       mongodb:
         condition: service_healthy
