@@ -20,7 +20,6 @@ export interface RegisterData {
   email: string;
   password: string;
   phone?: string;
-  role?: 'user' | 'admin';
 }
 
 export interface UpdateProfileData {
