@@ -8,6 +8,7 @@ export interface IUser extends Document {
   password: string;
   avatar?: string;
   phone?: string;
+  favoriteActivities: mongoose.Types.ObjectId[];
   role: 'user' | 'admin';
   isActive: boolean;
   createdAt: Date;
@@ -44,6 +45,10 @@ const UserSchema: Schema = new Schema({
     type: String,
     match: [/^1[3-9]\d{9}$/, '请输入有效的手机号码']
   },
+  favoriteActivities: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Activity'
+  }],
   role: {
     type: String,
     enum: ['user', 'admin'],

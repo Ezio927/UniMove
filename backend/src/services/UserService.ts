@@ -1,8 +1,50 @@
 import { AppError } from '../errors/AppError';
+import mongoose from 'mongoose';
+import { Activity } from '../models/Activity';
 import { User } from '../models/User';
 import { generateRefreshToken, generateToken } from '../utils/jwt';
 
 export class UserService {
+  static async addFavorite(userId: string, activityId: string): Promise<void> {
+    if (!mongoose.Types.ObjectId.isValid(activityId)) {
+      throw new AppError(400, '无效的活动 ID');
+    }
+
+    const activity = await Activity.findById(activityId);
+    if (!activity) throw new AppError(404, '活动不存在');
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { $addToSet: { favoriteActivities: activityId } },
+      { new: true }
+    );
+    if (!user) throw new AppError(404, '用户不存在');
+  }
+
+  static async removeFavorite(userId: string, activityId: string): Promise<void> {
+    if (!mongoose.Types.ObjectId.isValid(activityId)) {
+      throw new AppError(400, '无效的活动 ID');
+    }
+
+    await User.findByIdAndUpdate(
+      userId,
+      { $pull: { favoriteActivities: activityId } },
+      { new: true }
+    );
+  }
+
+  static async getFavorites(userId: string) {
+    const user = await User.findById(userId);
+    const favoriteActivities = user?.favoriteActivities ?? [];
+
+    return Activity.find({
+      _id: { $in: favoriteActivities },
+      status: { $ne: 'cancelled' }
+    })
+      .populate('organizer', 'username email avatar')
+      .sort({ createdAt: -1 });
+  }
+
   static async register(input: { username: string; email: string; password: string; phone?: string }) {
     const existingUser = await User.findOne({
       $or: [{ email: input.email }, { username: input.username }]

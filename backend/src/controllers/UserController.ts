@@ -67,4 +67,22 @@ export class UserController {
     await UserService.changePassword(req.user.userId, currentPassword, newPassword);
     res.json({ success: true, message: '密码修改成功' });
   }
+
+  static async getFavorites(req: AuthRequest, res: Response): Promise<void> {
+    if (!req.user) throw new AppError(401, '未认证');
+    const activities = await UserService.getFavorites(req.user.userId);
+    res.json({ success: true, data: { activities } });
+  }
+
+  static async addFavorite(req: AuthRequest, res: Response): Promise<void> {
+    if (!req.user) throw new AppError(401, '未认证');
+    await UserService.addFavorite(req.user.userId, req.params.activityId);
+    res.json({ success: true, message: '收藏成功' });
+  }
+
+  static async removeFavorite(req: AuthRequest, res: Response): Promise<void> {
+    if (!req.user) throw new AppError(401, '未认证');
+    await UserService.removeFavorite(req.user.userId, req.params.activityId);
+    res.json({ success: true, message: '取消收藏成功' });
+  }
 }
