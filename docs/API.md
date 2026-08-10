@@ -1,5 +1,40 @@
 # UniMove API
 
+## Favorites `/users/favorites`
+
+All favorite endpoints require `Authorization: Bearer <token>` and return HTTP 200 on success.
+
+`GET /favorites` returns every stored favorite activity that still exists in the database, with no pagination and in descending `createdAt` order. Cancelled and completed activities remain visible. The response is:
+
+```json
+{
+  "success": true,
+  "data": { "activities": [] }
+}
+```
+
+`PUT /favorites/:activityId` adds an activity idempotently. Its response is:
+
+```json
+{
+  "success": true,
+  "message": "收藏成功",
+  "data": { "favoriteActivityIds": [] }
+}
+```
+
+`DELETE /favorites/:activityId` removes an activity idempotently, including when the activity has already been deleted. Its response is:
+
+```json
+{
+  "success": true,
+  "message": "已取消收藏",
+  "data": { "favoriteActivityIds": [] }
+}
+```
+
+An invalid `activityId` returns 400. PUT returns 404 when the activity does not exist; all three endpoints return 401 without a valid authenticated user, and return 404 if that user no longer exists.
+
 默认根地址：`http://localhost:3001/api`
 
 ## 通用约定

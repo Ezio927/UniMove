@@ -10,6 +10,7 @@ export interface IUser extends Document {
   phone?: string;
   role: 'user' | 'admin';
   isActive: boolean;
+  favoriteActivities: mongoose.Types.ObjectId[];
   createdAt: Date;
   updatedAt: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -52,7 +53,12 @@ const UserSchema: Schema = new Schema({
   isActive: {
     type: Boolean,
     default: true
-  }
+  },
+  favoriteActivities: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Activity',
+    default: []
+  }]
 }, {
   timestamps: true
 });
