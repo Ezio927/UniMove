@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import { AppError } from '../errors/AppError';
 import { Activity } from '../models/Activity';
 import { hasLockedActivityUpdates, pickActivityUpdates } from '../utils/activityUpdates';
+import { ActivityQueryInput, parsePagination } from '../utils/activityQuery';
 
 type ActivityInput = Record<string, unknown>;
 
@@ -61,5 +62,30 @@ export class ActivityService {
       throw new AppError(400, '活动已有参与者，不能删除');
     }
     await activity.deleteOne();
+  }
+
+  static async getCreatedByUser(userId: string, input: ActivityQueryInput) {
+    const { page, limit, skip } = parsePagination(input);
+    const allowedStatuses = new Set(['draft', 'published', 'cancelled', 'completed']);
+    const status = typeof input.status === 'string' && allowedStatuses.has(input.status)
+      ? input.status : undefined;
+    const query = { organizer: userId, ...(status && { status }) };
+    const [activities, total] = await Promise.all([
+      Activity.find(query).populate('organizer', 'username email avatar')
+        .sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Activity.countDocuments(query)
+    ]);
+    return { activities, pagination: { current: page, total: Math.ceil(total / limit), count: total } };
+  }
+
+  static async getJoinedByUser(userId: string, input: ActivityQueryInput) {
+    const { page, limit, skip } = parsePagination(input);
+    const query = { participants: userId };
+    const [activities, total] = await Promise.all([
+      Activity.find(query).populate('organizer', 'username email avatar')
+        .sort({ startTime: 1 }).skip(skip).limit(limit),
+      Activity.countDocuments(query)
+    ]);
+    return { activities, pagination: { current: page, total: Math.ceil(total / limit), count: total } };
   }
 }
