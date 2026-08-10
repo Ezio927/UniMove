@@ -7,33 +7,16 @@ import mongoose from 'mongoose';
 export class OrderController {
   // 创建订单
   static async createOrder(req: AuthRequest, res: Response): Promise<void> {
+    let reservedActivityId: string | null = null;
+    const userId = req.user?.userId;
+
     try {
       const { activityId } = req.body;
-      const userId = req.user?.userId;
 
-      if (!mongoose.Types.ObjectId.isValid(activityId)) {
+      if (!userId || !mongoose.Types.ObjectId.isValid(activityId)) {
         res.status(400).json({
           success: false,
           message: '无效的活动ID'
-        });
-        return;
-      }
-
-      const activity = await Activity.findById(activityId);
-
-      if (!activity) {
-        res.status(404).json({
-          success: false,
-          message: '活动不存在'
-        });
-        return;
-      }
-
-      // 检查活动状态
-      if (activity.status !== 'published') {
-        res.status(400).json({
-          success: false,
-          message: '活动不可预订'
         });
         return;
       }
@@ -53,14 +36,31 @@ export class OrderController {
         return;
       }
 
-      // 检查人数限制
-      if (activity.currentParticipants >= activity.maxParticipants) {
+      // 原子预留名额：同一用户不能重复加入，且人数不能超过上限。
+      const activity = await Activity.findOneAndUpdate(
+        {
+          _id: activityId,
+          organizer: { $ne: userId },
+          status: 'published',
+          startTime: { $gt: new Date() },
+          participants: { $ne: userId },
+          $expr: { $lt: ['$currentParticipants', '$maxParticipants'] }
+        },
+        {
+          $addToSet: { participants: userId },
+          $inc: { currentParticipants: 1 }
+        },
+        { new: true }
+      );
+
+      if (!activity) {
         res.status(400).json({
           success: false,
-          message: '活动人数已满'
+          message: '活动不可报名、人数已满或您已报名'
         });
         return;
       }
+      reservedActivityId = activityId;
 
       // 创建订单
       const order: IOrder = new Order({
@@ -71,12 +71,7 @@ export class OrderController {
       });
 
       await order.save();
-
-      // 更新活动参与信息
-      await Activity.findByIdAndUpdate(activityId, {
-        $inc: { currentParticipants: 1 },
-        $addToSet: { participants: userId }
-      });
+      reservedActivityId = null;
 
       await order.populate([
         { path: 'user', select: 'username email' },
@@ -89,6 +84,13 @@ export class OrderController {
         data: { order }
       });
     } catch (error: any) {
+      if (reservedActivityId && userId) {
+        await Activity.updateOne(
+          { _id: reservedActivityId, participants: userId },
+          { $pull: { participants: userId }, $inc: { currentParticipants: -1 } }
+        ).catch(() => undefined);
+      }
+
       res.status(400).json({
         success: false,
         message: error.message || '订单创建失败'
@@ -200,21 +202,12 @@ export class OrderController {
         return;
       }
 
-      const order = await Order.findById(id).populate('activity');
+      const order = await Order.findOne({ _id: id, user: userId }).populate('activity');
 
       if (!order) {
         res.status(404).json({
           success: false,
           message: '订单不存在'
-        });
-        return;
-      }
-
-      // 检查权限
-      if (order.user.toString() !== userId) {
-        res.status(403).json({
-          success: false,
-          message: '无权操作此订单'
         });
         return;
       }
@@ -321,20 +314,42 @@ export class OrderController {
           return;
         }
 
-        // 模拟退款处理
-        order.status = 'refunded';
-        order.refundAmount = order.amount;
-        order.refundTime = new Date();
-        
-        // 更新活动参与人数
-        const activityDoc = await Activity.findById(activity._id);
-        if (activityDoc) {
-          activityDoc.participants = activityDoc.participants.filter(
-            participant => participant.toString() !== userId
-          );
-          activityDoc.currentParticipants -= 1;
-          await activityDoc.save();
+        // 只有一个并发请求能完成 paid -> refunded 状态迁移。
+        const refundedOrder = await Order.findOneAndUpdate(
+          { _id: id, user: userId, status: 'paid' },
+          {
+            $set: {
+              status: 'refunded',
+              refundAmount: order.amount,
+              refundTime: new Date(),
+              cancelReason: reason || '用户取消'
+            }
+          },
+          { new: true }
+        );
+
+        if (!refundedOrder) {
+          res.status(409).json({
+            success: false,
+            message: '订单状态已发生变化，请刷新后重试'
+          });
+          return;
         }
+
+        await Activity.updateOne(
+          { _id: activity._id, participants: userId },
+          {
+            $pull: { participants: userId },
+            $inc: { currentParticipants: -1 }
+          }
+        );
+
+        res.json({
+          success: true,
+          message: '订单取消成功',
+          data: { order: refundedOrder }
+        });
+        return;
       } else {
         order.status = 'cancelled';
       }

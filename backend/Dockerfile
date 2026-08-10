@@ -1,5 +1,5 @@
 # 使用官方 Node.js 镜像
-FROM node:18-alpine
+FROM node:22-alpine AS build
 
 # 设置工作目录
 WORKDIR /app
@@ -16,8 +16,15 @@ COPY . .
 # 构建 TypeScript 项目
 RUN npm run build
 
-# 清理开发依赖，只保留生产依赖
-RUN npm ci --only=production && npm cache clean --force
+RUN npm prune --omit=dev
+
+FROM node:22-alpine AS runtime
+
+WORKDIR /app
+
+COPY --from=build /app/package*.json ./
+COPY --from=build /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
 
 # 暴露端口
 EXPOSE 3001
@@ -26,4 +33,4 @@ EXPOSE 3001
 ENV NODE_ENV=production
 
 # 启动命令（使用构建后的 JS 文件）
-CMD ["npm", "start"]
+CMD ["node", "dist/index.js"]

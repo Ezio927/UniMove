@@ -7,7 +7,7 @@ export class UserController {
   // 用户注册
   static async register(req: Request, res: Response): Promise<void> {
     try {
-      const { username, email, password, phone, role = 'user' } = req.body;
+      const { username, email, password, phone } = req.body;
 
       // 检查用户是否已存在
       const existingUser = await User.findOne({
@@ -28,7 +28,7 @@ export class UserController {
         email,
         password,
         phone,
-        role
+        role: 'user'
       });
 
       await user.save();

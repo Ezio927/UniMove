@@ -35,9 +35,13 @@ export const authenticateToken = async (
       return;
     }
 
-    req.user = decoded;
+    req.user = {
+      userId: user._id.toString(),
+      email: user.email,
+      role: user.role
+    };
     next();
-  } catch (error) {
+  } catch (_error) {
     res.status(403).json({
       success: false,
       message: '访问令牌无效'
