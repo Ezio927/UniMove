@@ -20,7 +20,7 @@ UniMove 的认证、活动、订单、评论、前端界面和既有 Docker 配�
 - [x] P6：接入活动列表、详情和个人中心界面（`cdf5d6d`、`d9444eb`、`611f003`）。
 - [x] P7：完成规约、质量与安全复审；修复跨层 organizer 契约及状态时序问题（`ecd48d6`、`b804e693be893fb269068afb45d6baf8d3416e7a`、`e35143c`）。
 - [x] P8：提供根目录一键质量门禁和 GitLab `unit-test`/质量 CI（`e4c4f84fce0a1d44933c29b25bfd7d950d7e9025`、`6686bb6e5ace9b482f210a1177db77460eb09237`）；本阶段最终 `npm run verify` 已通过。
-- [ ] P9（终审修复中）：既有 Docker 分发、安全边界、README 与提交文档已由 `72ac455`、`826f518`、`03b1efb`、`71cb693`、`e0f4868` 实现。`final_infra_review` 的 whole-branch 终审发现 4 项 Important 与 1 项 Minor，当前重新打开 P9 以集中修复；修复后的 whole-branch re-review 尚未发生，仍 pending。
+- [x] P9：完成可复核 Docker 分发、安全边界、README 与提交文档（既有提交 `72ac455`、`826f518`、`03b1efb`、`71cb693`、`e0f4868`；终审集中修复 `a13e3b7`、`895f7bb`）。`final_infra_review` whole-branch 终审的 4 项 Important 与 1 项 Minor 已全部处理，并通过 TDD、根门禁、Compose/build、断库恢复、凭据扫描和 diff 验证；修复后的 whole-branch re-review 尚未发生，仍 pending。
 - [ ] P10：准备可访问的线上 WebUI。依赖 P9，需要部署平台账号与授权。
 - [ ] P11：由学生完成 `REFLECTION.md`，执行最终验证并提交。依赖 P3–P10。
 
@@ -30,8 +30,10 @@ UniMove 的认证、活动、订单、评论、前端界面和既有 Docker 配�
 
 Task 3 使用仅进程本地的伪值验证了核心和 tools Compose 渲染、镜像构建及运行时健康检查。核心栈在 `unimove-validation` 项目名下运行成功：frontend、backend、mongodb 均为 healthy，`GET http://127.0.0.1/health` 返回 `200 ok`，`GET http://127.0.0.1/api/health` 返回 `200`、`success=True`、`database=connected`。`03b1efb` 后又分别以 `Origin: http://127.0.0.1` 和 `Origin: http://localhost` 请求同一健康端点，两次均返回 200 与完全匹配的 `Access-Control-Allow-Origin`。启动曾因短于 32 字符的 JWT 被 backend 拒绝；以满足既有校验的临时 JWT 重试成功。清理仅使用项目作用域的 `down`，未删除卷或原有 Docker 资源。
 
+终审修复后，根 `npm run verify` 再次通过（backend 16 文件/53 测试、frontend 8 文件/40 测试）。隔离 `unimove-finalfix-runtime` 栈初始三服务 healthy；停止该项目 MongoDB 后 `/api/health` 返回 503、`success=false`、`database=disconnected`，重启后恢复三服务 healthy 与 200/connected。项目级 `down` 未使用 `-v`，容器与网络清零、1 个命名卷保留，预存 `d965b6c27f62` 未改变。core/tools Compose、两个 Docker build、ignore 内容、扩展凭据扫描和 diff 门禁均通过。
+
 ## 过程纪律与边界
 
 收藏行为变更按 RED → GREEN → 重构记录；实施使用独立 worktree、实现/审查 Agent 分离，且在完成声明前运行验证。提交基础设施阶段使用 root 命令、CI、Docker 与文档审查；不宣称完整历史基线均为 TDD。
 
-核心 Docker 栈不发布 backend 或 MongoDB 端口；frontend 仅绑定回环地址。凭据由 shell 环境传入，`MONGO_ROOT_PASSWORD_URI` 是原始 Mongo 密码的 URI 百分号编码值，该等价关系由变量设置者保证而非 `docker compose config` 验证。Mongo Express 是显式启用的可选工具，亦仅绑定回环地址。`superpowers:finishing-a-development-branch` 和提交基础设施 whole-branch review 均尚未执行。
+核心 Docker 栈不发布 backend 或 MongoDB 端口；frontend 仅绑定回环地址。凭据由 shell 环境传入，`MONGO_ROOT_PASSWORD_URI` 是原始 Mongo 密码的 URI 百分号编码值，该等价关系由变量设置者保证而非 `docker compose config` 验证。本地 Compose 为简化使用 root；生产必须使用外部最小权限应用用户。Mongo Express 是显式启用的可选工具，亦仅绑定回环地址。`superpowers:finishing-a-development-branch` 尚未执行；whole-branch 终审已经发生，修复后的 re-review 仍 pending。

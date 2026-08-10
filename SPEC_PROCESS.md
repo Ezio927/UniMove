@@ -35,8 +35,20 @@ UniMove 是学生已有项目。2026-08-10 起，课程工作以该项目为 B �
 
 同轮 Minor 是：说明 `compose config` 不能证明 raw/encoded 等价且会输出解析后的秘密，把凭据扫描 placeholder 换为可复现表达式，将 README 的 `bcrypt` 更正为实际依赖 `bcryptjs`，并同步后续 MIT metadata 状态。它们分别由 `e0f4868` 文档修订和 `03b1efb` metadata 修复处理，不归类为首轮 Important。
 
-提交基础设施阶段实际使用 `superpowers:using-git-worktrees`、`superpowers:subagent-driven-development`、`superpowers:requesting-code-review`、`superpowers:receiving-code-review` 和 `superpowers:verification-before-completion`；设计/计划使用 `superpowers:brainstorming`、`superpowers:writing-plans`。`superpowers:finishing-a-development-branch` 未发生。Task 4 定向审查已经发生，但 whole-branch review 尚未发生，保持 pending。
+提交基础设施阶段实际使用 `superpowers:using-git-worktrees`、`superpowers:subagent-driven-development`、`superpowers:requesting-code-review`、`superpowers:receiving-code-review` 和 `superpowers:verification-before-completion`；设计/计划使用 `superpowers:brainstorming`、`superpowers:writing-plans`。`superpowers:finishing-a-development-branch` 未发生。Task 4 定向审查在该检查点已经发生，当时 whole-branch review 尚未发生。
+
+## P9 whole-branch 终审与集中修复
+
+`final_infra_review`（`gpt-5.6-sol` / max）审查 `c8e39fd..ac6d52c` 的 whole-branch diff package、设计/计划、Task reports、源码、Docker 与文档，报告 4 项 Important 和 1 项 Minor：数据库非 connected 时健康端点仍为 200/成功；初始化脚本创建 backend 未使用的固定应用用户；demo importer 硬编码弱 admin 口令且 production 可运行；旧数据库/开发指南仍使用过时 Compose、直出数据库和固定凭据说明；两端 Docker context 未统一排除 `.env.*`。
+
+`final_infra_fix`（`gpt-5.6-sol` / max）在同一隔离 worktree 集中处理全部发现，没有扩展业务功能。它按 `superpowers:systematic-debugging`、`superpowers:test-driven-development`、`superpowers:receiving-code-review`、`superpowers:executing-plans`、`superpowers:using-git-worktrees` 与 `superpowers:verification-before-completion` 执行；本轮没有额外人工干预或新裁定。
+
+健康检查先增加真实 Express 路由测试。RED 是 connected 用例通过、disconnected 用例收到 200 而非预期 503（1/2 失败）；`a13e3b7` 的最小实现以 `readyState === 1` 同时驱动 HTTP 200/503 与 `success`，GREEN 为 2/2。Seed 先以 importer 边界测试得到 5/5 RED：四种不安全配置未被拒绝，新 admin 收到硬编码值的散列；同一提交新增当前进程 `SEED_ADMIN_PASSWORD` 的缺失、12 字符下限、legacy 弱值与 production 拒绝边界，并把该值交给 `User` 模型一次散列，GREEN 为 5/5。
+
+`895f7bb` 从 core Compose 移除初始化挂载并删除脚本；backend 继续使用 required root raw/URI pair。README、Docker/数据库/开发指南明确这是本地简化，生产须使用外部最小权限应用用户；旧卷可能保留 legacy unused user，只能在确认卷、备份和消费者后手工审计、轮换或删除。两端 `.dockerignore` 排除 `.env` 与 `.env.*`，并重新包含 `.env.example`。
+
+最终根 `npm run verify` 退出 0：backend 16 文件/53 测试、frontend 8 文件/40 测试，lint、类型检查和两端构建均完成。使用未写入文件的进程本地一次性值验证 core/tools Compose 渲染；两个镜像构建与 ignore 内容断言通过。隔离 `unimove-finalfix-runtime` 项目先达到三服务 healthy、API 200/connected；停止该项目 MongoDB 后 API 返回 503/`success: false`/disconnected；重启后恢复三服务 healthy 与 200。清理只运行该项目 `down`，未用 `-v`，容器与网络为 0、命名卷保留，预存 `d965b6c27f62` 未改变。`final_infra_review` 已发生；修复后的 whole-branch re-review 仍 pending。
 
 ## 当前限制和后续
 
-`/api/health` 目前报告 Mongoose 连接状态而不发起额外数据库读。核心发布仅绑定回环；线上暴露必须由学生在有授权的部署平台中完成 TLS、密钥管理和网络策略。P10 部署和 P11 学生反思仍 pending；`superpowers:finishing-a-development-branch` 尚未执行。
+`/api/health` 依据 Mongoose 连接状态而不发起额外数据库读，但任何非 connected 状态均返回 503/`success: false`。Core Compose 为本地简化使用 root 账户；生产必须提供外部最小权限应用用户。核心发布仅绑定回环；线上暴露必须由学生在有授权的部署平台中完成 TLS、密钥管理和网络策略。P10 部署和 P11 学生反思仍 pending；`superpowers:finishing-a-development-branch` 尚未执行。
