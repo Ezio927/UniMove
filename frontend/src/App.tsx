@@ -1,8 +1,7 @@
 import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Provider } from 'react-redux';
-import { ConfigProvider } from 'antd';
-import { Spin } from 'antd';
+import { App as AntApp, ConfigProvider, Spin } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import { store } from './store';
 import AppLayout from './components/AppLayout';
@@ -22,8 +21,23 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 const App: React.FC = () => {
   return (
     <Provider store={store}>
-      <ConfigProvider locale={zhCN}>
-        <Router>
+      <ConfigProvider locale={zhCN} theme={{
+        token: {
+          colorPrimary: '#1677ff',
+          colorText: '#1f2937',
+          colorTextSecondary: '#667085',
+          colorBgLayout: '#f6f8fb',
+          borderRadius: 10,
+          borderRadiusLG: 14,
+          fontFamily: 'Inter, "PingFang SC", "Microsoft YaHei", sans-serif'
+        },
+        components: {
+          Button: { controlHeightLG: 44, fontWeight: 600 },
+          Card: { headerFontSize: 17 },
+          Input: { controlHeightLG: 44 }
+        }
+      }}>
+        <AntApp><Router>
           <Suspense fallback={<div className="app-loading"><Spin size="large" /></div>}>
           <Routes>
             {/* 认证页面不使用布局 */}
@@ -46,7 +60,7 @@ const App: React.FC = () => {
             } />
           </Routes>
           </Suspense>
-        </Router>
+        </Router></AntApp>
       </ConfigProvider>
     </Provider>
   );

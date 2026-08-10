@@ -1,97 +1,20 @@
-.app-layout {
-  min-height: 100vh;
-}
-
-.app-header {
-  padding: 0;
-  background: #001529;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.app-header-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 24px;
-  height: 64px;
-}
-
-.app-logo h2 {
-  color: white;
-  margin: 0;
-  font-size: 20px;
-  font-weight: bold;
-}
-
-.app-logo a {
-  text-decoration: none;
-}
-
-.app-menu {
-  flex: 1;
-  margin: 0 40px;
-  border: none;
-}
-
-.app-header-actions {
-  display: flex;
-  align-items: center;
-}
-
-.user-button {
-  color: white !important;
-  height: auto;
-  padding: 8px 16px;
-  border-radius: 6px;
-}
-
-.user-button:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-}
-
-.username {
-  color: white;
-  margin-left: 8px;
-}
-
-.app-content {
-  min-height: calc(100vh - 64px - 69px);
-  background: #f0f2f5;
-}
-
-.app-content-wrapper {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px;
-}
-
-.app-footer {
-  background: #001529;
-  color: rgba(255, 255, 255, 0.65);
-  text-align: center;
-  padding: 20px 0;
-}
-
-.footer-content p {
-  margin: 4px 0;
-}
-
+.app-layout { min-height: 100vh; background: #f6f8fb; }
+.app-header { height: 64px; padding: 0; background: rgba(255,255,255,.96); border-bottom: 1px solid #eaecf0; position: sticky; top: 0; z-index: 20; backdrop-filter: blur(12px); }
+.app-header-content { max-width: 1180px; height: 64px; margin: 0 auto; padding: 0 24px; display: flex; align-items: center; gap: 28px; }
+.app-logo a { display: flex; align-items: center; gap: 9px; font-size: 19px; font-weight: 700; color: #101828; }
+.logo-mark { width: 32px; height: 32px; display: grid; place-items: center; border-radius: 9px; color: #fff; background: #1677ff; }
+.app-menu { flex: 1; min-width: 0; border-bottom: 0; background: transparent; }
+.app-header-actions { display: flex; align-items: center; gap: 12px; }
+.user-button { height: 40px; padding: 4px 10px; color: #344054; }
+.username { max-width: 100px; overflow: hidden; text-overflow: ellipsis; }
+.app-content { min-height: calc(100vh - 134px); background: #f6f8fb; }
+.app-content-wrapper { max-width: 1180px; margin: 0 auto; padding: 32px 24px 56px; }
+.app-footer { padding: 22px 16px; color: #667085; text-align: center; background: #fff; border-top: 1px solid #eaecf0; }
+.footer-content p { margin: 0; }
 @media (max-width: 768px) {
-  .app-header-content {
-    padding: 0 16px;
-  }
-  
-  .app-menu {
-    display: none;
-  }
-  
-  .app-content-wrapper {
-    padding: 16px;
-  }
-  
-  .username {
-    display: none;
-  }
+  .app-header-content { padding: 0 16px; gap: 12px; }
+  .app-menu { display: none; }
+  .app-content-wrapper { padding: 20px 16px 40px; }
+  .username, .logo-text { display: none; }
+  .app-header-actions > .ant-btn:not(.user-button) { display: none; }
 }
