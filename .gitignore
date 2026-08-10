@@ -95,6 +95,7 @@ dist
 # Temporary folders
 tmp/
 temp/
+.worktrees/
 
 # Database files
 *.db

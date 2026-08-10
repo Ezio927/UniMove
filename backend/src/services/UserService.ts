@@ -1,4 +1,6 @@
+import mongoose from 'mongoose';
 import { AppError } from '../errors/AppError';
+import { Activity } from '../models/Activity';
 import { User } from '../models/User';
 import { generateRefreshToken, generateToken } from '../utils/jwt';
 
@@ -48,5 +50,42 @@ export class UserService {
     }
     user.password = newPassword;
     await user.save();
+  }
+
+  static async getFavorites(userId: string) {
+    const user = await User.findById(userId).select('favoriteActivities');
+    if (!user) throw new AppError(404, '\u7528\u6237\u4e0d\u5b58\u5728');
+    if (!user.favoriteActivities?.length) return [];
+
+    return Activity.find({ _id: { $in: user.favoriteActivities } })
+      .populate('organizer', 'username email avatar')
+      .sort({ createdAt: -1 });
+  }
+
+  static async addFavorite(userId: string, activityId: string) {
+    if (!mongoose.isValidObjectId(activityId)) throw new AppError(400, '\u6d3b\u52a8 ID \u65e0\u6548');
+    if (!await Activity.exists({ _id: activityId })) throw new AppError(404, '\u6d3b\u52a8\u4e0d\u5b58\u5728');
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { $addToSet: { favoriteActivities: activityId } },
+      { new: true }
+    ).select('favoriteActivities');
+    if (!user) throw new AppError(404, '\u7528\u6237\u4e0d\u5b58\u5728');
+
+    return user.favoriteActivities;
+  }
+
+  static async removeFavorite(userId: string, activityId: string) {
+    if (!mongoose.isValidObjectId(activityId)) throw new AppError(400, '\u6d3b\u52a8 ID \u65e0\u6548');
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { $pull: { favoriteActivities: activityId } },
+      { new: true }
+    ).select('favoriteActivities');
+    if (!user) throw new AppError(404, '\u7528\u6237\u4e0d\u5b58\u5728');
+
+    return user.favoriteActivities;
   }
 }

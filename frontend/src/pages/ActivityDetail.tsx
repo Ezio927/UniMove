@@ -1,13 +1,18 @@
 import React from 'react';
 import { Alert, Avatar, Button, Card, Col, Empty, Form, Input, List, Modal, Progress, Rate, Result, Row, Skeleton, Space, Tag, Typography } from 'antd';
-import { CalendarOutlined, CommentOutlined, EnvironmentOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
+import { CalendarOutlined, CommentOutlined, EnvironmentOutlined, HeartFilled, HeartOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { useNavigate } from 'react-router-dom';
 import { useActivityDetail } from '../hooks/useActivityDetail';
+import { useFavorites } from '../hooks/useFavorites';
+import { useAppSelector } from '../store/hooks';
 import './ActivityDetail.css';
 
 const ActivityDetail: React.FC = () => {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAppSelector(state => state.auth);
+  const { favoriteIds, loading: favoritesLoading, ready: favoritesReady, error: favoritesError,
+    errorKind: favoritesErrorKind, mutatingId, toggleFavorite, reload: reloadFavorites } = useFavorites(isAuthenticated);
   const { activity, comments, statistics, loading, commentsLoading, error, enrolling, cancelling,
     commentModalVisible, setCommentModalVisible, commentLoading, userEnrollmentStatus, canComment,
     isOrganizer, form, handleEnroll, handleCancelEnrollment, handleComment, retry } = useActivityDetail();
@@ -19,6 +24,17 @@ const ActivityDetail: React.FC = () => {
   const full = activity.currentParticipants >= activity.maxParticipants;
   const past = dayjs(activity.startTime).isBefore(dayjs());
   const enrollmentPercent = Math.min(100, Math.round(activity.currentParticipants / activity.maxParticipants * 100));
+  const isFavorite = favoriteIds.has(activity._id);
+  const handleFavorite = () => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    void toggleFavorite(activity._id);
+  };
+  const retryFavorites = () => {
+    void reloadFavorites();
+  };
 
   return (
     <div className="activity-detail-page">
@@ -42,8 +58,18 @@ const ActivityDetail: React.FC = () => {
           <div className="detail-price">{activity.price === 0 ? '免费活动' : `¥${activity.price}`}</div>
           {isOrganizer ? <Alert showIcon type="info" message="这是你创建的活动" /> : userEnrollmentStatus ? (
             <Space.Compact block><Button block disabled icon={<TeamOutlined />}>已报名</Button><Button danger loading={cancelling} onClick={handleCancelEnrollment}>取消报名</Button></Space.Compact>
-          ) : <Button block type="primary" size="large" icon={<TeamOutlined />} loading={enrolling}
-            disabled={past || full} onClick={handleEnroll}>{past ? '活动已结束' : full ? '名额已满' : '立即报名'}</Button>}
+          ) : <Space.Compact block><Button block type="primary" size="large" icon={<TeamOutlined />} loading={enrolling}
+            disabled={past || full} onClick={handleEnroll}>{past ? '活动已结束' : full ? '名额已满' : '立即报名'}</Button></Space.Compact>}
+          <Button block aria-label={isFavorite ? '取消收藏' : '收藏活动'}
+            loading={isAuthenticated && favoritesLoading || mutatingId === activity._id}
+            disabled={isAuthenticated && !favoritesReady}
+            aria-busy={isAuthenticated && favoritesLoading || mutatingId === activity._id}
+            icon={isFavorite ? <HeartFilled /> : <HeartOutlined />} onClick={handleFavorite}>
+            {isFavorite ? '取消收藏' : '收藏活动'}
+          </Button>
+          {favoritesError && <Alert showIcon type="error"
+            message={favoritesErrorKind === 'mutation' ? '收藏操作失败' : '收藏加载失败'} description={favoritesError}
+            action={<Button onClick={retryFavorites}>重试</Button>} />}
         </Card>
       </section>
 

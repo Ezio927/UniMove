@@ -13,6 +13,9 @@ router.post('/login', validateBody(loginSchema), asyncHandler(UserController.log
 
 // 需要认证的路由
 router.use(authenticateToken);
+router.get('/favorites', asyncHandler(UserController.getFavorites));
+router.put('/favorites/:activityId', asyncHandler(UserController.addFavorite));
+router.delete('/favorites/:activityId', asyncHandler(UserController.removeFavorite));
 router.get('/profile', asyncHandler(UserController.getProfile));
 router.put('/profile', validateBody(updateProfileSchema), asyncHandler(UserController.updateProfile));
 router.put('/password', validateBody(changePasswordSchema), asyncHandler(UserController.changePassword));

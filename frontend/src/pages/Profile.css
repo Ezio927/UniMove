@@ -70,6 +70,10 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
 }
 
+.profile-favorites-grid {
+  margin-top: 8px;
+}
+
 .profile-content-card .ant-tabs {
   padding: 0 24px;
 }

@@ -67,4 +67,33 @@ export class UserController {
     await UserService.changePassword(req.user.userId, currentPassword, newPassword);
     res.json({ success: true, message: '密码修改成功' });
   }
+
+  static async getFavorites(req: AuthRequest, res: Response): Promise<void> {
+    if (!req.user) throw new AppError(401, '\u672a\u8ba4\u8bc1');
+    const activities = await UserService.getFavorites(req.user.userId);
+
+    res.json({ success: true, data: { activities } });
+  }
+
+  static async addFavorite(req: AuthRequest, res: Response): Promise<void> {
+    if (!req.user) throw new AppError(401, '\u672a\u8ba4\u8bc1');
+    const favoriteActivityIds = await UserService.addFavorite(req.user.userId, req.params.activityId);
+
+    res.json({
+      success: true,
+      message: '\u6536\u85cf\u6210\u529f',
+      data: { favoriteActivityIds }
+    });
+  }
+
+  static async removeFavorite(req: AuthRequest, res: Response): Promise<void> {
+    if (!req.user) throw new AppError(401, '\u672a\u8ba4\u8bc1');
+    const favoriteActivityIds = await UserService.removeFavorite(req.user.userId, req.params.activityId);
+
+    res.json({
+      success: true,
+      message: '\u5df2\u53d6\u6d88\u6536\u85cf',
+      data: { favoriteActivityIds }
+    });
+  }
 }
