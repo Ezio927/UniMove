@@ -16,11 +16,12 @@ export interface ActivityCardProps {
   isFavorite?: boolean;
   onToggleFavorite?: (activityId: string) => void;
   favoriteLoading?: boolean;
+  favoriteDisabled?: boolean;
 }
 
 const ActivityCard: React.FC<ActivityCardProps> = ({
   activity, showActions = true, onJoin, onLeave, isJoined = false, loading = false,
-  isFavorite = false, onToggleFavorite, favoriteLoading = false
+  isFavorite = false, onToggleFavorite, favoriteLoading = false, favoriteDisabled = false
 }) => {
   const navigate = useNavigate();
   const full = activity.currentParticipants >= activity.maxParticipants;
@@ -60,7 +61,8 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
             <Avatar size={24} src={activity.organizer.avatar} icon={<UserOutlined />} />
             <span>{activity.organizer.username}</span>
           </Space>
-          {onToggleFavorite && <Button type="text" shape="circle" loading={favoriteLoading}
+          {onToggleFavorite && <Button type="text" shape="circle" loading={favoriteLoading} disabled={favoriteDisabled}
+            aria-busy={favoriteLoading}
             aria-label={isFavorite ? '取消收藏' : '收藏活动'}
             icon={isFavorite ? <HeartFilled /> : <HeartOutlined />}
             onClick={handleFavorite} />}

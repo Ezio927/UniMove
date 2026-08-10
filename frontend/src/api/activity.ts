@@ -1,6 +1,13 @@
 import api from './index';
 import type { User } from './user';
 
+export interface ActivityOrganizer {
+  _id: string;
+  username: string;
+  email: string;
+  avatar?: string;
+}
+
 export interface Activity {
   _id: string;
   title: string;
@@ -13,7 +20,7 @@ export interface Activity {
   currentParticipants: number;
   price: number;
   images: string[];
-  organizer: User;
+  organizer: ActivityOrganizer;
   participants: User[];
   status: 'draft' | 'published' | 'cancelled' | 'completed';
   tags: string[];

@@ -109,7 +109,7 @@ export const useActivityDetail = () => {
     finally { setCommentLoading(false); }
   };
 
-  const isOrganizer = activity ? (activity.organizer?._id || activity.organizer?.id) === user?.id : false;
+  const isOrganizer = activity ? activity.organizer?._id === user?.id : false;
   return { activity, comments, statistics, loading, commentsLoading, error, enrolling, cancelling,
     commentModalVisible, setCommentModalVisible, commentLoading, userEnrollmentStatus,
     canComment: userEnrollmentStatus && !hasCommented, isOrganizer, form, handleEnroll, handleCancelEnrollment,

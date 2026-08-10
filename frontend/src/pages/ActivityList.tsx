@@ -24,10 +24,10 @@ const ActivityList: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAppSelector(state => state.auth);
   const [filters, setFilters] = useState<ActivityFilters>(() => parseActivityFilters(location.search));
-  const [favoriteActionAttempted, setFavoriteActionAttempted] = useState(false);
   const { activities, loading, error, userOrders, pagination, setPagination, joining,
     joinActivity, leaveActivity } = useActivityCatalog(filters, isAuthenticated);
-  const { favoriteIds, error: favoritesError, mutatingId, toggleFavorite, reload: reloadFavorites } = useFavorites(isAuthenticated);
+  const { favoriteIds, loading: favoritesLoading, ready: favoritesReady, error: favoritesError,
+    errorKind: favoritesErrorKind, mutatingId, toggleFavorite, reload: reloadFavorites } = useFavorites(isAuthenticated);
 
   useEffect(() => {
     const parsed = parseActivityFilters(location.search);
@@ -51,12 +51,10 @@ const ActivityList: React.FC = () => {
       navigate('/login');
       return;
     }
-    setFavoriteActionAttempted(true);
     void toggleFavorite(activityId);
   };
 
   const retryFavorites = () => {
-    setFavoriteActionAttempted(false);
     void reloadFavorites();
   };
 
@@ -89,7 +87,7 @@ const ActivityList: React.FC = () => {
 
       {error && <Alert showIcon type="error" message="活动加载失败" description={error} action={<Button onClick={() => applyFilters({})}>重试</Button>} />}
       {favoritesError && <Alert showIcon type="error"
-        message={favoriteActionAttempted ? '收藏操作失败' : '收藏加载失败'} description={favoritesError}
+        message={favoritesErrorKind === 'mutation' ? '收藏操作失败' : '收藏加载失败'} description={favoritesError}
         action={<Button onClick={retryFavorites}>重试</Button>} />}
 
       <section className="activities-section" aria-live="polite" aria-busy={loading}>
@@ -100,7 +98,8 @@ const ActivityList: React.FC = () => {
             <ActivityCard activity={activity} onJoin={joinActivity} onLeave={leaveActivity}
               isJoined={userOrders.includes(activity._id)} loading={joining === activity._id}
               isFavorite={favoriteIds.has(activity._id)} onToggleFavorite={handleToggleFavorite}
-              favoriteLoading={mutatingId === activity._id} />
+              favoriteLoading={isAuthenticated && favoritesLoading || mutatingId === activity._id}
+              favoriteDisabled={isAuthenticated && !favoritesReady} />
           </Col>)}</Row>
         ) : !error ? (
           <div className="empty-state"><Empty description="没有找到符合条件的活动"><Button onClick={resetFilters}>清除筛选</Button></Empty></div>

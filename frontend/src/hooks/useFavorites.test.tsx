@@ -2,6 +2,7 @@ import { act, render, renderHook, waitFor } from '@testing-library/react';
 import { Suspense, startTransition, useLayoutEffect, useState } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { userAPI } from '../api/user';
+import type { Activity } from '../api/activity';
 import { useFavorites } from './useFavorites';
 
 vi.mock('../api/user', () => ({
@@ -12,7 +13,7 @@ vi.mock('../api/user', () => ({
   }
 }));
 
-const activity = {
+const activity: Activity = {
   _id: 'activity-1',
   title: 'Campus Run',
   description: 'A friendly campus run.',
@@ -24,9 +25,9 @@ const activity = {
   currentParticipants: 4,
   price: 0,
   images: [],
-  organizer: { id: 'organizer-1', username: 'Organizer', email: 'organizer@example.com', role: 'user' as const },
+  organizer: { _id: 'organizer-1', username: 'Organizer', email: 'organizer@example.com' },
   participants: [],
-  status: 'published' as const,
+  status: 'published',
   tags: [],
   createdAt: '2026-08-01T00:00:00.000Z',
   updatedAt: '2026-08-01T00:00:00.000Z'
@@ -49,6 +50,103 @@ describe('useFavorites', () => {
 
     expect(result.current.favorites).toEqual([activity]);
     expect(result.current.favoriteIds.has(activity._id)).toBe(true);
+    expect(result.current.ready).toBe(true);
+  });
+
+  it('does not mutate while the initial favorites request is pending', async () => {
+    let resolveFavorites: (value: { success: boolean; data: { activities: typeof activity[] } }) => void;
+    const getFavorites = new Promise<{ success: boolean; data: { activities: typeof activity[] } }>(resolve => {
+      resolveFavorites = resolve;
+    });
+    vi.mocked(userAPI.getFavorites).mockReturnValue(getFavorites);
+    vi.mocked(userAPI.addFavorite).mockResolvedValue({ success: true, data: { favoriteActivityIds: [activity._id] } });
+    const { result } = renderHook(() => useFavorites(true));
+    await waitFor(() => expect(result.current.loading).toBe(true));
+
+    act(() => {
+      void result.current.toggleFavorite(activity._id);
+    });
+
+    expect(userAPI.addFavorite).not.toHaveBeenCalled();
+    expect(userAPI.removeFavorite).not.toHaveBeenCalled();
+    expect(result.current.ready).toBe(false);
+    expect(result.current.errorKind).toBeNull();
+    await act(async () => {
+      resolveFavorites!({ success: true, data: { activities: [] } });
+      await getFavorites;
+    });
+  });
+
+  it('does not mutate after the initial favorites request fails', async () => {
+    vi.mocked(userAPI.getFavorites).mockRejectedValue(new Error('Unable to load favorites'));
+    vi.mocked(userAPI.addFavorite).mockResolvedValue({ success: true, data: { favoriteActivityIds: [activity._id] } });
+    const { result } = renderHook(() => useFavorites(true));
+    await waitFor(() => expect(result.current.error).toBe('Unable to load favorites'));
+
+    await act(async () => {
+      await result.current.toggleFavorite(activity._id);
+    });
+
+    expect(userAPI.addFavorite).not.toHaveBeenCalled();
+    expect(userAPI.removeFavorite).not.toHaveBeenCalled();
+    expect(result.current.ready).toBe(false);
+    expect(result.current.errorKind).toBe('load');
+  });
+
+  it('uses the initialized favorite IDs when an older toggle callback runs', async () => {
+    let resolveFavorites: (value: { success: boolean; data: { activities: typeof activity[] } }) => void;
+    const getFavorites = new Promise<{ success: boolean; data: { activities: typeof activity[] } }>(resolve => {
+      resolveFavorites = resolve;
+    });
+    vi.mocked(userAPI.getFavorites)
+      .mockReturnValueOnce(getFavorites)
+      .mockResolvedValueOnce({ success: true, data: { activities: [] } });
+    vi.mocked(userAPI.removeFavorite).mockResolvedValue({ success: true, data: { favoriteActivityIds: [] } });
+    const { result } = renderHook(() => useFavorites(true));
+    const pendingToggle = result.current.toggleFavorite;
+
+    await act(async () => {
+      resolveFavorites!({ success: true, data: { activities: [activity] } });
+      await getFavorites;
+    });
+    await waitFor(() => expect(result.current.favoriteIds.has(activity._id)).toBe(true));
+
+    await act(async () => {
+      await pendingToggle(activity._id);
+    });
+
+    expect(userAPI.removeFavorite).toHaveBeenCalledWith(activity._id);
+    expect(userAPI.addFavorite).not.toHaveBeenCalled();
+  });
+
+  it('blocks an older ready toggle callback while reload is pending', async () => {
+    let resolveReload: (value: { success: boolean; data: { activities: typeof activity[] } }) => void;
+    const reloadRequest = new Promise<{ success: boolean; data: { activities: typeof activity[] } }>(resolve => {
+      resolveReload = resolve;
+    });
+    vi.mocked(userAPI.getFavorites)
+      .mockResolvedValueOnce({ success: true, data: { activities: [activity] } })
+      .mockReturnValueOnce(reloadRequest);
+    vi.mocked(userAPI.removeFavorite).mockResolvedValue({ success: true, data: { favoriteActivityIds: [] } });
+    const { result } = renderHook(() => useFavorites(true));
+    await waitFor(() => expect(result.current.favoriteIds.has(activity._id)).toBe(true));
+    const readyToggle = result.current.toggleFavorite;
+
+    act(() => {
+      void result.current.reload();
+    });
+    await waitFor(() => expect(result.current.loading).toBe(true));
+    await act(async () => {
+      await readyToggle(activity._id);
+    });
+
+    expect(userAPI.addFavorite).not.toHaveBeenCalled();
+    expect(userAPI.removeFavorite).not.toHaveBeenCalled();
+    expect(result.current.ready).toBe(false);
+    await act(async () => {
+      resolveReload!({ success: true, data: { activities: [activity] } });
+      await reloadRequest;
+    });
   });
 
   it('adds an unfavorited activity after the request succeeds', async () => {
@@ -122,6 +220,7 @@ describe('useFavorites', () => {
     expect(userAPI.removeFavorite).toHaveBeenCalledWith(activity._id);
     expect(result.current.favoriteIds.has(activity._id)).toBe(true);
     expect(result.current.error).toBe('Unable to remove favorite');
+    expect(result.current.errorKind).toBe('mutation');
     expect(result.current.mutatingId).toBeNull();
   });
 
@@ -143,7 +242,37 @@ describe('useFavorites', () => {
 
     expect(result.current.favoriteIds.has(activity._id)).toBe(true);
     expect(result.current.error).toBe('Failed to update favorites');
+    expect(result.current.errorKind).toBe('mutation');
     expect(result.current.mutatingId).toBeNull();
+  });
+
+  it('clears a mutation error when reload starts', async () => {
+    let resolveReload: (value: { success: boolean; data: { activities: typeof activity[] } }) => void;
+    const reloadRequest = new Promise<{ success: boolean; data: { activities: typeof activity[] } }>(resolve => {
+      resolveReload = resolve;
+    });
+    vi.mocked(userAPI.getFavorites)
+      .mockResolvedValueOnce({ success: true, data: { activities: [activity] } })
+      .mockReturnValueOnce(reloadRequest);
+    vi.mocked(userAPI.removeFavorite).mockRejectedValue(new Error('Unable to remove favorite'));
+    const { result } = renderHook(() => useFavorites(true));
+    await waitFor(() => expect(result.current.ready).toBe(true));
+    await act(async () => {
+      await result.current.toggleFavorite(activity._id);
+    });
+
+    act(() => {
+      void result.current.reload();
+    });
+
+    await waitFor(() => expect(result.current.loading).toBe(true));
+    expect(result.current.error).toBeNull();
+    expect(result.current.errorKind).toBeNull();
+    expect(result.current.ready).toBe(false);
+    await act(async () => {
+      resolveReload!({ success: true, data: { activities: [activity] } });
+      await reloadRequest;
+    });
   });
 
   it('discards favorites returned by a request that finishes after disabling', async () => {
@@ -260,6 +389,35 @@ describe('useFavorites', () => {
     });
 
     await waitFor(() => expect(getByTestId('disabled-favorites-state')).toHaveTextContent('0'));
+    expect(userAPI.getFavorites).toHaveBeenCalledTimes(1);
+  });
+
+  it('blocks a stale toggle in the layout phase of a committed disable', async () => {
+    let setEnabled: (enabled: boolean) => void;
+    let enabledToggle: ((activityId: string) => Promise<void>) | undefined;
+    vi.mocked(userAPI.getFavorites).mockResolvedValue({ success: true, data: { activities: [] } });
+    vi.mocked(userAPI.addFavorite).mockRejectedValue(new Error('must not run'));
+
+    const Harness = () => {
+      const [enabled, setEnabledState] = useState(true);
+      setEnabled = setEnabledState;
+      const { error, toggleFavorite } = useFavorites(enabled);
+      if (enabled) enabledToggle = toggleFavorite;
+      useLayoutEffect(() => {
+        if (!enabled) void enabledToggle!(activity._id);
+      }, [enabled]);
+      return <span data-testid="disabled-favorites-error">{error ?? 'none'}</span>;
+    };
+    const { getByTestId } = render(<Harness />);
+    await waitFor(() => expect(userAPI.getFavorites).toHaveBeenCalledTimes(1));
+
+    act(() => {
+      setEnabled!(false);
+    });
+
+    await waitFor(() => expect(getByTestId('disabled-favorites-error')).toHaveTextContent('none'));
+    expect(userAPI.addFavorite).not.toHaveBeenCalled();
+    expect(userAPI.removeFavorite).not.toHaveBeenCalled();
     expect(userAPI.getFavorites).toHaveBeenCalledTimes(1);
   });
 });

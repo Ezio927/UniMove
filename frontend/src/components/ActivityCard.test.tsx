@@ -8,7 +8,7 @@ const activity: Activity = {
   _id: 'activity-id', title: '校园夜跑', description: '一起绕操场轻松跑步', category: '跑步',
   location: '东操场', startTime: '2099-08-10T12:00:00.000Z', endTime: '2099-08-10T14:00:00.000Z',
   maxParticipants: 20, currentParticipants: 4, price: 0, images: [], tags: [], status: 'published',
-  organizer: { id: 'user-id', username: '组织者', email: 'owner@example.com', role: 'user' },
+  organizer: { _id: 'user-id', username: '组织者', email: 'owner@example.com' },
   participants: [], createdAt: '2026-08-10T00:00:00.000Z', updatedAt: '2026-08-10T00:00:00.000Z'
 };
 
@@ -32,6 +32,17 @@ describe('ActivityCard', () => {
     renderCard({}, { isFavorite: true, onToggleFavorite: vi.fn() });
 
     expect(screen.getByRole('button', { name: '取消收藏' })).toBeInTheDocument();
+  });
+
+  it('disables an unknown favorite state and announces pending work', () => {
+    const onToggleFavorite = vi.fn();
+    renderCard({}, { onToggleFavorite, favoriteDisabled: true, favoriteLoading: true });
+
+    const favoriteButton = screen.getByRole('button', { name: '收藏活动' });
+    expect(favoriteButton).toBeDisabled();
+    expect(favoriteButton).toHaveAttribute('aria-busy', 'true');
+    fireEvent.click(favoriteButton);
+    expect(onToggleFavorite).not.toHaveBeenCalled();
   });
 
   it('presents the essential activity information', () => {

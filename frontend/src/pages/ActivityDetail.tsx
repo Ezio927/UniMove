@@ -10,9 +10,9 @@ import './ActivityDetail.css';
 
 const ActivityDetail: React.FC = () => {
   const navigate = useNavigate();
-  const [favoriteActionAttempted, setFavoriteActionAttempted] = React.useState(false);
   const { isAuthenticated } = useAppSelector(state => state.auth);
-  const { favoriteIds, error: favoritesError, mutatingId, toggleFavorite, reload: reloadFavorites } = useFavorites(isAuthenticated);
+  const { favoriteIds, loading: favoritesLoading, ready: favoritesReady, error: favoritesError,
+    errorKind: favoritesErrorKind, mutatingId, toggleFavorite, reload: reloadFavorites } = useFavorites(isAuthenticated);
   const { activity, comments, statistics, loading, commentsLoading, error, enrolling, cancelling,
     commentModalVisible, setCommentModalVisible, commentLoading, userEnrollmentStatus, canComment,
     isOrganizer, form, handleEnroll, handleCancelEnrollment, handleComment, retry } = useActivityDetail();
@@ -30,11 +30,9 @@ const ActivityDetail: React.FC = () => {
       navigate('/login');
       return;
     }
-    setFavoriteActionAttempted(true);
     void toggleFavorite(activity._id);
   };
   const retryFavorites = () => {
-    setFavoriteActionAttempted(false);
     void reloadFavorites();
   };
 
@@ -62,12 +60,15 @@ const ActivityDetail: React.FC = () => {
             <Space.Compact block><Button block disabled icon={<TeamOutlined />}>已报名</Button><Button danger loading={cancelling} onClick={handleCancelEnrollment}>取消报名</Button></Space.Compact>
           ) : <Space.Compact block><Button block type="primary" size="large" icon={<TeamOutlined />} loading={enrolling}
             disabled={past || full} onClick={handleEnroll}>{past ? '活动已结束' : full ? '名额已满' : '立即报名'}</Button></Space.Compact>}
-          <Button block aria-label={isFavorite ? '取消收藏' : '收藏活动'} loading={mutatingId === activity._id}
+          <Button block aria-label={isFavorite ? '取消收藏' : '收藏活动'}
+            loading={isAuthenticated && favoritesLoading || mutatingId === activity._id}
+            disabled={isAuthenticated && !favoritesReady}
+            aria-busy={isAuthenticated && favoritesLoading || mutatingId === activity._id}
             icon={isFavorite ? <HeartFilled /> : <HeartOutlined />} onClick={handleFavorite}>
             {isFavorite ? '取消收藏' : '收藏活动'}
           </Button>
           {favoritesError && <Alert showIcon type="error"
-            message={favoriteActionAttempted ? '收藏操作失败' : '收藏加载失败'} description={favoritesError}
+            message={favoritesErrorKind === 'mutation' ? '收藏操作失败' : '收藏加载失败'} description={favoritesError}
             action={<Button onClick={retryFavorites}>重试</Button>} />}
         </Card>
       </section>
