@@ -3,6 +3,7 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import { userAPI } from '../api/user';
 import type { User, LoginData, RegisterData } from '../api/user';
 import { message } from 'antd';
+import { getErrorMessage } from '../api/error';
 
 interface AuthState {
   user: User | null;
@@ -32,7 +33,7 @@ export const login = createAsyncThunk(
       message.success(response.message || '登录成功');
       return response.data;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : '登录失败';
+      const errorMessage = getErrorMessage(error, '登录失败');
       message.error(errorMessage);
       return rejectWithValue(errorMessage);
     }
@@ -53,7 +54,7 @@ export const register = createAsyncThunk(
       message.success(response.message || '注册成功');
       return response.data;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : '注册失败';
+      const errorMessage = getErrorMessage(error, '注册失败');
       message.error(errorMessage);
       return rejectWithValue(errorMessage);
     }
@@ -68,7 +69,7 @@ export const getUserProfile = createAsyncThunk(
       const response = await userAPI.getProfile();
       return response.data.user;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : '获取用户信息失败';
+      const errorMessage = getErrorMessage(error, '获取用户信息失败');
       return rejectWithValue(errorMessage);
     }
   }

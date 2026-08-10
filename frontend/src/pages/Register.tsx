@@ -6,6 +6,7 @@ import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { setCredentials } from '../store/authSlice';
 import { userAPI } from '../api/user';
 import './Register.css';
+import { getErrorMessage } from '../api/error';
 
 const { Title, Text } = Typography;
 interface RegisterFormData {
@@ -47,7 +48,7 @@ const Register: React.FC = () => {
         message.error(response.message || '注册失败');
       }
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : '注册失败，请稍后重试';
+      const errorMessage = getErrorMessage(error, '注册失败，请稍后重试');
       message.error(errorMessage);
     } finally {
       setLoading(false);
