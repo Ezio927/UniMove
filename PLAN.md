@@ -26,7 +26,7 @@ UniMove 的认证、活动、订单、评论、前端界面、基础测试和 Do
 
 ## TDD 与评审纪律
 
-P4–P6 的每个行为变更都遵循：先写失败测试并记录失败原因，再实现最少代码使其通过，随后重构并运行全量检查。每个任务由新的实现子 Agent 执行，再由独立审查 Agent 检查规约符合性和代码质量。
+P4–P6 的每个行为变更都遵循：先写失败测试并记录失败原因，再实现最少代码使其通过，随后重构并运行全量检查。独立 worktree 使用 `superpowers:using-git-worktrees`，任务执行使用 `superpowers:subagent-driven-development`，行为变更使用 `superpowers:test-driven-development`，独立评审使用 `superpowers:requesting-code-review`。每个任务由新的实现子 Agent 执行，再由独立审查 Agent 检查规约符合性和代码质量；完成声明前使用 `superpowers:verification-before-completion`。`superpowers:finishing-a-development-branch` 属于后续分支收尾步骤，本阶段尚未执行，不能记为已完成证据。
 
 `PLAN.md` 在任务完成时补充实际 commit hash；过程、Agent、测试红绿结果和人工干预写入 `AGENT_LOG.md`。
 

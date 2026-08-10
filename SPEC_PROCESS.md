@@ -20,6 +20,8 @@ UniMove 是学生已有的个人项目。2026-08-10 开始以该项目为课程 
 
 ## 活动收藏的实现与验证证据
 
+执行环境采用 `superpowers:using-git-worktrees` 隔离 worktree，以 `superpowers:subagent-driven-development` 协调独立实现/审查 Agent，以 `superpowers:test-driven-development` 约束行为变更，并用 `superpowers:requesting-code-review` 与 `superpowers:verification-before-completion` 完成评审和验证。后续分支收尾计划使用 `superpowers:finishing-a-development-branch`，但在本记录阶段尚未执行。
+
 P4 由后端实现 Agent 在 `961c0a28cd339b8d528cdeae36acd4c830351d54` 完成。任务报告记录了服务与 Controller 分别从“方法不存在”的 RED 到 4/4 GREEN；schema 语法和 Unicode 消息回归均在最终行为验证前修正。
 
 P5 由前端状态实现 Agent 从缺失模块的 RED 开始，`7d7580a31b8f65ca743031fab3d92364be43f1fa` 实现初版，随后用 `66313e0c418ea507e360202116850838ebf5d4b4`、`e44937fd3f6f3778b02d98410cbb2c8c5bdd3e12`、`04935c4bad7d9e28219e7146d115dd644f124d49` 三次处理 Hook 审查发现的 disable 时序问题。三轮实际证据依次为 RED/GREEN 3/8→8/8、1/9→9/9、1/10→10/10。
@@ -32,11 +34,13 @@ P7 第一阶段审查的 3 个 Important 由 `611f003` 和 `ecd48d6` 处理并�
 
 最终新 HEAD `b804e69` 门禁全部 exit 0：后端 lint、type-check、14 文件/46 测试和 build 通过；前端 lint、type-check、8 文件/28 测试和 build 通过。jsdom 的 pseudo-element 提示和 Vite 500 kB chunk 警告均不导致失败。保留的 Minor 是成功操作后 `favoriteActionAttempted` 不复位，未来独立 reload 错误可能被误标；当前没有自动后台刷新，最终审查裁定不阻塞。
 
+Agent/context 映射为：P4 `favorites_backend` / `review_backend`，P5 `favorites_state` / `review_state`，P6 `favorites_ui` / `review_ui`（均为 `gpt-5.6-terra` / `high`）；P7 `favorites_evidence` 为 `gpt-5.6-terra` / `medium`，文档只读审查为 `review_evidence`。实现 prompt 分别以对应 task brief 和既有接口/设计契约为核心上下文，审查 prompt 使用只读 brief、报告与 diff package；完整临时 task reports/diff package 位于 gitignored `.superpowers/sdd/2026-08-10-activity-favorites/`，不随仓库提交，因此这里仅记录可核验摘要，不声称保存逐字 prompt。
+
 主 Agent 使用 `superpowers:writing-plans` 将功能拆成后端领域/API、前端状态、页面接入、最终评审四个任务。计划明确文件职责、接口、失败测试、验证命令和提交边界，并通过占位符、范围和一致性自检。
 
 ## 冷启动验证
 
-使用一个无主对话历史的独立 Codex Agent，在 `course/coldstart-favorites` worktree 中仅以根目录 `SPEC.md` 和 `PLAN.md` 为需求材料，试做 P4 后端收藏任务。它没有读取 `AGENT_LOG.md`、`SPEC_PROCESS.md` 或 `docs/superpowers/` 下的详细资料。
+使用 `coldstart_favorites`（`gpt-5.6-terra` / `high`）这一无主对话历史的独立 Codex Agent，在 `course/coldstart-favorites` worktree 中仅以根目录 `SPEC.md` 和 `PLAN.md` 为需求材料，试做 P4 后端收藏任务。它没有读取 `AGENT_LOG.md`、`SPEC_PROCESS.md` 或 `docs/superpowers/` 下的详细资料，产出提交为 `91d86c2`。
 
 该 Agent 没有向学生提问，而是记录了五处需要自行假设的内容：
 
