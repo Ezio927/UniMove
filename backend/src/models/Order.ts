@@ -70,7 +70,6 @@ const OrderSchema: Schema = new Schema({
 // 创建索引
 OrderSchema.index({ user: 1, createdAt: -1 });
 OrderSchema.index({ activity: 1 });
-OrderSchema.index({ orderNumber: 1 });
 OrderSchema.index({ status: 1 });
 
 export const Order = mongoose.model<IOrder>('Order', OrderSchema);
