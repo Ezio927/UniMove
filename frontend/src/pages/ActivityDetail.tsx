@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import React from 'react';
 import {
   Card,
   Button,
@@ -8,7 +7,6 @@ import {
   Space,
   Avatar,
   Divider,
-  message,
   Modal,
   Form,
   Input,
@@ -30,200 +28,17 @@ import {
   ShareAltOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import { useAppSelector } from '../store/hooks';
-import { activityAPI, type Activity } from '../api/activity';
-import { orderAPI } from '../api/order';
-import { commentAPI, type Comment } from '../api/comment';
+import { useActivityDetail } from '../hooks/useActivityDetail';
 import './ActivityDetail.css';
 
 const { Title, Paragraph, Text } = Typography;
 const { TextArea } = Input;
 
 const ActivityDetail: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { isAuthenticated, user } = useAppSelector(state => state.auth);
-  
-  const [activity, setActivity] = useState<Activity | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [enrolling, setEnrolling] = useState(false);
-  const [cancelling, setCancelling] = useState(false);
-  const [commentModalVisible, setCommentModalVisible] = useState(false);
-  const [commentLoading, setCommentLoading] = useState(false);
-  const [userEnrollmentStatus, setUserEnrollmentStatus] = useState(false);
-  const [form] = Form.useForm();
-
-  const loadActivityDetail = React.useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await activityAPI.getActivityById(id!);
-      if (response.success) {
-        setActivity(response.data.activity);
-      } else {
-        message.error('活动不存在');
-        navigate('/activities');
-      }
-    } catch {
-      message.error('加载活动详情失败');
-      navigate('/activities');
-    } finally {
-      setLoading(false);
-    }
-  }, [id, navigate]);
-
-  // 检查用户报名状态
-  const checkUserEnrollmentStatus = React.useCallback(async () => {
-    if (!isAuthenticated || !user) {
-      setUserEnrollmentStatus(false);
-      return;
-    }
-
-    try {
-      const response = await orderAPI.getUserOrders();
-      if (response.success) {
-        const hasEnrolled = response.data.orders.some(order => 
-          order.activity._id === id && order.status === 'paid'
-        );
-        setUserEnrollmentStatus(hasEnrolled);
-      }
-    } catch (error) {
-      console.error('检查报名状态失败:', error);
-    }
-  }, [id, isAuthenticated, user]);
-
-  const loadComments = React.useCallback(async () => {
-    try {
-      const response = await commentAPI.getActivityComments(id!);
-      if (response.success) {
-        setComments(response.data.comments);
-      }
-    } catch {
-      console.error('加载评论失败');
-    }
-  }, [id]);
-
-  useEffect(() => {
-    const loadData = async () => {
-      if (id) {
-        await Promise.all([
-          loadActivityDetail(), 
-          loadComments(),
-          checkUserEnrollmentStatus()
-        ]);
-      }
-    };
-    loadData();
-  }, [id, loadActivityDetail, loadComments, checkUserEnrollmentStatus]);
-
-  const handleEnroll = async () => {
-    if (!isAuthenticated) {
-      message.warning('请先登录');
-      navigate('/login');
-      return;
-    }
-
-    if (!activity) return;
-
-    // 防止重复点击
-    if (enrolling) return;
-
-    // 检查是否已经报名
-    if (userEnrollmentStatus) {
-      message.warning('您已经报名过此活动');
-      return;
-    }
-
-    setEnrolling(true);
-    try {
-      const response = await orderAPI.createOrder({
-        activityId: activity._id
-      });
-      
-      if (response.success) {
-        message.success('报名成功！');
-        setUserEnrollmentStatus(true);
-        loadActivityDetail(); // 重新加载活动信息
-      } else {
-        message.error(response.message || '报名失败');
-      }
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : '报名失败，请稍后重试';
-      message.error(errorMessage);
-    } finally {
-      setEnrolling(false);
-    }
-  };
-
-  const handleCancelEnrollment = async () => {
-    if (!isAuthenticated || !user || !activity) {
-      return;
-    }
-
-    setCancelling(true);
-    try {
-      // 获取用户的订单
-      const ordersResponse = await orderAPI.getUserOrders();
-      if (!ordersResponse.success) {
-        message.error('获取订单信息失败');
-        return;
-      }
-
-      // 找到对应活动的订单
-      const order = ordersResponse.data.orders.find(order => 
-        order.activity._id === activity._id && order.status === 'paid'
-      );
-
-      if (!order) {
-        message.error('未找到对应的订单');
-        return;
-      }
-
-      // 取消订单
-      const response = await orderAPI.cancelOrder(order._id, { reason: '用户主动取消' });
-      if (response.success) {
-        message.success('取消报名成功！');
-        setUserEnrollmentStatus(false);
-        loadActivityDetail(); // 重新加载活动信息
-      } else {
-        message.error(response.message || '取消报名失败');
-      }
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : '取消报名失败';
-      message.error(errorMessage);
-    } finally {
-      setCancelling(false);
-    }
-  };
-
-  const handleComment = async (values: { content: string; rating: number }) => {
-    if (!isAuthenticated) {
-      message.warning('请先登录');
-      return;
-    }
-
-    setCommentLoading(true);
-    try {
-      const response = await commentAPI.createComment({
-        activityId: id!,
-        content: values.content,
-        rating: values.rating
-      });
-
-      if (response.success) {
-        message.success('评论成功！');
-        setCommentModalVisible(false);
-        form.resetFields();
-        loadComments();
-      } else {
-        message.error(response.message || '评论失败');
-      }
-    } catch {
-      message.error('评论失败，请稍后重试');
-    } finally {
-      setCommentLoading(false);
-    }
-  };
+  const { activity, comments, loading, enrolling, cancelling,
+    commentModalVisible, setCommentModalVisible, commentLoading,
+    userEnrollmentStatus, form, handleEnroll, handleCancelEnrollment,
+    handleComment } = useActivityDetail();
 
   if (loading) {
     return (
