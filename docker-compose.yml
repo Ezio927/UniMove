@@ -1,11 +1,11 @@
+# `MONGO_ROOT_PASSWORD` is the raw MongoDB init/auth password. Set
+# `MONGO_ROOT_PASSWORD_URI` to that same password percent-encoded for MongoDB
+# connection URIs; it is required wherever a URI is constructed.
 services:
   # MongoDB 数据库
   mongodb:
     image: mongo:7.0
-    container_name: unimove-mongodb
     restart: always
-    ports:
-      - "27017:27017"
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?Set MONGO_ROOT_PASSWORD}
@@ -14,7 +14,7 @@ services:
       - mongodb_data:/data/db
       - ./init-mongo.js:/docker-entrypoint-initdb.d/init-mongo.js:ro
     healthcheck:
-      test: ["CMD-SHELL", "mongosh --quiet --username $$MONGO_INITDB_ROOT_USERNAME --password $$MONGO_INITDB_ROOT_PASSWORD --authenticationDatabase admin --eval \"db.adminCommand('ping')\" || exit 1"]
+      test: ["CMD-SHELL", "mongosh --quiet --username \"$$MONGO_INITDB_ROOT_USERNAME\" --password \"$$MONGO_INITDB_ROOT_PASSWORD\" --authenticationDatabase admin --eval \"db.adminCommand('ping')\" || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -27,14 +27,11 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: unimove-backend
     restart: always
-    ports:
-      - "3001:3001"
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - MONGODB_URI=mongodb://admin:${MONGO_ROOT_PASSWORD:?Set MONGO_ROOT_PASSWORD}@mongodb:27017/unimove?authSource=admin
+      - MONGODB_URI=mongodb://admin:${MONGO_ROOT_PASSWORD_URI:?Set MONGO_ROOT_PASSWORD_URI to the percent-encoded MONGO_ROOT_PASSWORD}@mongodb:27017/unimove?authSource=admin
       - JWT_SECRET=${JWT_SECRET:?Set JWT_SECRET}
       - JWT_EXPIRES_IN=7d
       - FRONTEND_URL=http://localhost
@@ -57,10 +54,9 @@ services:
       dockerfile: Dockerfile
       args:
         VITE_API_URL: /api
-    container_name: unimove-frontend
     restart: always
     ports:
-      - "80:80"
+      - "127.0.0.1:80:80"
     depends_on:
       backend:
         condition: service_healthy

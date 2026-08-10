@@ -1,16 +1,15 @@
 services:
   mongo-express:
     image: mongo-express:1.0.0
-    container_name: unimove-mongo-express
     restart: always
     ports:
-      - "8081:8081"
+      - "127.0.0.1:8081:8081"
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: admin
       ME_CONFIG_MONGODB_ADMINPASSWORD: ${MONGO_ROOT_PASSWORD:?Set MONGO_ROOT_PASSWORD}
-      ME_CONFIG_MONGODB_URL: mongodb://admin:${MONGO_ROOT_PASSWORD:?Set MONGO_ROOT_PASSWORD}@mongodb:27017/
-      ME_CONFIG_BASICAUTH_ENABLED: true
-      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_MONGODB_URL: mongodb://admin:${MONGO_ROOT_PASSWORD_URI:?Set MONGO_ROOT_PASSWORD_URI to the percent-encoded MONGO_ROOT_PASSWORD}@mongodb:27017/
+      ME_CONFIG_BASICAUTH_ENABLED: "true"
+      ME_CONFIG_BASICAUTH_USERNAME: ${MONGO_EXPRESS_USERNAME:-admin}
       ME_CONFIG_BASICAUTH_PASSWORD: ${MONGO_EXPRESS_PASSWORD:?Set MONGO_EXPRESS_PASSWORD}
     depends_on:
       mongodb:
