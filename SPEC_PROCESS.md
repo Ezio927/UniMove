@@ -18,6 +18,20 @@ UniMove 是学生已有的个人项目。2026-08-10 开始以该项目为课程 
 
 ## Writing Plans
 
+## 活动收藏的实现与验证证据
+
+P4 由后端实现 Agent 在 `961c0a28cd339b8d528cdeae36acd4c830351d54` 完成。任务报告记录了服务与 Controller 分别从“方法不存在”的 RED 到 4/4 GREEN；schema 语法和 Unicode 消息回归均在最终行为验证前修正。
+
+P5 由前端状态实现 Agent 从缺失模块的 RED 开始，`7d7580a31b8f65ca743031fab3d92364be43f1fa` 实现初版，随后用 `66313e0c418ea507e360202116850838ebf5d4b4`、`e44937fd3f6f3778b02d98410cbb2c8c5bdd3e12`、`04935c4bad7d9e28219e7146d115dd644f124d49` 三次处理 Hook 审查发现的 disable 时序问题。三轮实际证据依次为 RED/GREEN 3/8→8/8、1/9→9/9、1/10→10/10。
+
+P6 的页面实现提交为 `cdf5d6d` 和 `d9444eb`。学生明确授权将 `frontend/src/pages/ActivityDetail.test.tsx` 纳入测试范围：该决定以规约正确性和 TDD 优先于原六文件计划限制。组织者收藏回归以 RED（无收藏按钮）开始，之后在 GREEN 中通过聚焦 2 文件的 5 个测试。
+
+P7 第一阶段审查的 3 个 Important 由 `611f003` 和 `ecd48d6` 处理并分别通过 scoped re-review：前者以页面 RED/GREEN 增加游客登录引导、可重试错误和 Profile/list/detail 验收测试；后者补充后端 404、幂等、缺失用户和真实路由边界覆盖，并在一次有效 RED 中发现、修复旧用户无收藏字段的兼容问题。
+
+第二阶段只读审查发现 1 个 Important：后端收藏列表没有 populate `organizer`，实际 ObjectId 不符合前端 `Activity.organizer: User` 契约，也无法供 `ActivityCard` 显示用户名和头像；前后端完整 organizer 假数据没有捕获该问题。`b804e693be893fb269068afb45d6baf8d3416e7a` 以 1/9 的有效 RED 证明缺失 populate，再以服务 9/9、真实路由 4/4 的 GREEN 增加指定字段 populate 与直接回归断言。最终只读复审无 Critical/Important，P7 完成。
+
+最终新 HEAD `b804e69` 门禁全部 exit 0：后端 lint、type-check、14 文件/46 测试和 build 通过；前端 lint、type-check、8 文件/28 测试和 build 通过。jsdom 的 pseudo-element 提示和 Vite 500 kB chunk 警告均不导致失败。保留的 Minor 是成功操作后 `favoriteActionAttempted` 不复位，未来独立 reload 错误可能被误标；当前没有自动后台刷新，最终审查裁定不阻塞。
+
 主 Agent 使用 `superpowers:writing-plans` 将功能拆成后端领域/API、前端状态、页面接入、最终评审四个任务。计划明确文件职责、接口、失败测试、验证命令和提交边界，并通过占位符、范围和一致性自检。
 
 ## 冷启动验证
