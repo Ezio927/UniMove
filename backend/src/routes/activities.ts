@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { ActivityController } from '../controllers/ActivityController';
 import { authenticateToken } from '../middleware/auth';
+import { asyncHandler } from '../middleware/asyncHandler';
 
 const router = Router();
 
@@ -9,7 +10,7 @@ router.get('/my/created', authenticateToken, ActivityController.getMyActivities)
 router.get('/my/joined', authenticateToken, ActivityController.getJoinedActivities);
 
 // 公开路由
-router.get('/', ActivityController.getActivities);
+router.get('/', asyncHandler(ActivityController.getActivities));
 router.get('/:id', ActivityController.getActivityById);
 
 // 需要认证的路由
