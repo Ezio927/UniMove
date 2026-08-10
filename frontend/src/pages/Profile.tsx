@@ -16,7 +16,9 @@ import {
   Statistic,
   Row,
   Col,
-  Empty
+  Empty,
+  Alert,
+  Skeleton
 } from 'antd';
 import {
   UserOutlined,
@@ -24,12 +26,15 @@ import {
   CalendarOutlined,
   TeamOutlined,
   CommentOutlined,
-  TrophyOutlined
+  TrophyOutlined,
+  HeartOutlined
 } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import type { Order } from '../api/order';
 import type { Comment } from '../api/comment';
 import { useProfile } from '../hooks/useProfile';
+import { useFavorites } from '../hooks/useFavorites';
+import ActivityCard from '../components/ActivityCard';
 import './Profile.css';
 
 const { Title, Text } = Typography;
@@ -43,6 +48,8 @@ const Profile: React.FC = () => {
     form, commentForm, handleCancelOrder, handleEditComment,
     handleDeleteComment, handleUpdateComment, handleUpdateProfile
   } = useProfile();
+  const { favorites, loading: favoritesLoading, error: favoritesError, mutatingId,
+    toggleFavorite, reload } = useFavorites(Boolean(user));
 
   const orderColumns = [
     {
@@ -270,6 +277,20 @@ const Profile: React.FC = () => {
                 emptyText: '暂无评论记录'
               }}
             />
+          </TabPane>
+
+          <TabPane tab="我的收藏" key="favorites" icon={<HeartOutlined />}>
+            {favoritesLoading ? <Skeleton active /> : favoritesError ? (
+              <Alert showIcon type="error" message="收藏加载失败" description={favoritesError}
+                action={<Button onClick={() => void reload()}>重试</Button>} />
+            ) : favorites.length ? (
+              <Row gutter={[20, 20]} className="profile-favorites-grid">
+                {favorites.map(activity => <Col xs={24} md={12} lg={8} key={activity._id}>
+                  <ActivityCard activity={activity} showActions={false} isFavorite
+                    onToggleFavorite={toggleFavorite} favoriteLoading={mutatingId === activity._id} />
+                </Col>)}
+              </Row>
+            ) : <Empty description="暂无收藏活动" />}
           </TabPane>
 
           <TabPane tab="账户信息" key="account" icon={<UserOutlined />}>

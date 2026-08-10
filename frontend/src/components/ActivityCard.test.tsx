@@ -1,7 +1,7 @@
-import { render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
-import { describe, expect, it } from 'vitest';
-import ActivityCard from './ActivityCard';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import ActivityCard, { type ActivityCardProps } from './ActivityCard';
 import type { Activity } from '../api/activity';
 
 const activity: Activity = {
@@ -12,11 +12,28 @@ const activity: Activity = {
   participants: [], createdAt: '2026-08-10T00:00:00.000Z', updatedAt: '2026-08-10T00:00:00.000Z'
 };
 
-const renderCard = (overrides: Partial<Activity> = {}) => render(
-  <MemoryRouter><ActivityCard activity={{ ...activity, ...overrides }} /></MemoryRouter>
+const renderCard = (overrides: Partial<Activity> = {}, props: Partial<ActivityCardProps> = {}) => render(
+  <MemoryRouter><ActivityCard activity={{ ...activity, ...overrides }} {...props} /></MemoryRouter>
 );
 
+afterEach(cleanup);
+
 describe('ActivityCard', () => {
+  it('announces and toggles an unfavorited activity', () => {
+    const onToggleFavorite = vi.fn();
+    renderCard({}, { isFavorite: false, onToggleFavorite });
+
+    fireEvent.click(screen.getByRole('button', { name: '收藏活动' }));
+
+    expect(onToggleFavorite).toHaveBeenCalledWith(activity._id);
+  });
+
+  it('announces the active favorite state', () => {
+    renderCard({}, { isFavorite: true, onToggleFavorite: vi.fn() });
+
+    expect(screen.getByRole('button', { name: '取消收藏' })).toBeInTheDocument();
+  });
+
   it('presents the essential activity information', () => {
     renderCard();
     expect(screen.getByText('校园夜跑')).toBeInTheDocument();

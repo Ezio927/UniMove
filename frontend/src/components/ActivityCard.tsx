@@ -1,22 +1,26 @@
 import React from 'react';
 import { Avatar, Button, Card, Space, Tag } from 'antd';
-import { CalendarOutlined, EnvironmentOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
+import { CalendarOutlined, EnvironmentOutlined, HeartFilled, HeartOutlined, TeamOutlined, UserOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import dayjs from 'dayjs';
 import type { Activity } from '../api/activity';
 import './ActivityCard.css';
 
-interface ActivityCardProps {
+export interface ActivityCardProps {
   activity: Activity;
   showActions?: boolean;
   onJoin?: (activityId: string) => void;
   onLeave?: (activityId: string) => void;
   isJoined?: boolean;
   loading?: boolean;
+  isFavorite?: boolean;
+  onToggleFavorite?: (activityId: string) => void;
+  favoriteLoading?: boolean;
 }
 
 const ActivityCard: React.FC<ActivityCardProps> = ({
-  activity, showActions = true, onJoin, onLeave, isJoined = false, loading = false
+  activity, showActions = true, onJoin, onLeave, isJoined = false, loading = false,
+  isFavorite = false, onToggleFavorite, favoriteLoading = false
 }) => {
   const navigate = useNavigate();
   const full = activity.currentParticipants >= activity.maxParticipants;
@@ -26,6 +30,11 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
   const handleEnrollment = () => {
     if (isJoined) onLeave?.(activity._id);
     else onJoin?.(activity._id);
+  };
+
+  const handleFavorite = (event: React.MouseEvent<HTMLElement>) => {
+    event.stopPropagation();
+    onToggleFavorite?.(activity._id);
   };
 
   return (
@@ -51,6 +60,10 @@ const ActivityCard: React.FC<ActivityCardProps> = ({
             <Avatar size={24} src={activity.organizer.avatar} icon={<UserOutlined />} />
             <span>{activity.organizer.username}</span>
           </Space>
+          {onToggleFavorite && <Button type="text" shape="circle" loading={favoriteLoading}
+            aria-label={isFavorite ? '取消收藏' : '收藏活动'}
+            icon={isFavorite ? <HeartFilled /> : <HeartOutlined />}
+            onClick={handleFavorite} />}
           <strong className="activity-price">{activity.price === 0 ? '免费' : `¥${activity.price}`}</strong>
         </div>
         {showActions && (

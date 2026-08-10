@@ -7,6 +7,7 @@ import ActivityCard from '../components/ActivityCard';
 import { useAppSelector } from '../store/hooks';
 import { DEFAULT_ACTIVITY_FILTERS, parseActivityFilters, serializeActivityFilters } from '../utils/activityFilters';
 import { useActivityCatalog } from '../hooks/useActivityCatalog';
+import { useFavorites } from '../hooks/useFavorites';
 import './ActivityList.css';
 
 const categories = ['篮球', '足球', '羽毛球', '乒乓球', '网球', '游泳', '健身', '跑步', '其他']
@@ -25,6 +26,7 @@ const ActivityList: React.FC = () => {
   const [filters, setFilters] = useState<ActivityFilters>(() => parseActivityFilters(location.search));
   const { activities, loading, error, userOrders, pagination, setPagination, joining,
     joinActivity, leaveActivity } = useActivityCatalog(filters, isAuthenticated);
+  const { favoriteIds, mutatingId, toggleFavorite } = useFavorites(isAuthenticated);
 
   useEffect(() => {
     const parsed = parseActivityFilters(location.search);
@@ -78,7 +80,9 @@ const ActivityList: React.FC = () => {
         ) : activities.length > 0 ? (
           <Row gutter={[20, 20]}>{activities.map(activity => <Col xs={24} md={12} lg={8} key={activity._id}>
             <ActivityCard activity={activity} onJoin={joinActivity} onLeave={leaveActivity}
-              isJoined={userOrders.includes(activity._id)} loading={joining === activity._id} />
+              isJoined={userOrders.includes(activity._id)} loading={joining === activity._id}
+              isFavorite={favoriteIds.has(activity._id)} onToggleFavorite={toggleFavorite}
+              favoriteLoading={mutatingId === activity._id} />
           </Col>)}</Row>
         ) : !error ? (
           <div className="empty-state"><Empty description="没有找到符合条件的活动"><Button onClick={resetFilters}>清除筛选</Button></Empty></div>
