@@ -10,6 +10,17 @@ export const useFavorites = (enabled: boolean) => {
   const [error, setError] = useState<string | null>(null);
   const [mutatingId, setMutatingId] = useState<string | null>(null);
   const mutatingIdRef = useRef<string | null>(null);
+  const enabledRef = useRef(enabled);
+  const requestGenerationRef = useRef(0);
+  const stateVersionRef = useRef(0);
+
+  if (enabledRef.current !== enabled) {
+    enabledRef.current = enabled;
+    if (!enabled) {
+      requestGenerationRef.current += 1;
+      stateVersionRef.current += 1;
+    }
+  }
 
   const reload = useCallback(async () => {
     if (!enabled) {
@@ -17,19 +28,28 @@ export const useFavorites = (enabled: boolean) => {
       setFavoriteIds(new Set());
       setError(null);
       setLoading(false);
+      mutatingIdRef.current = null;
+      setMutatingId(null);
       return;
     }
+    if (!enabledRef.current) return;
 
+    const requestGeneration = ++requestGenerationRef.current;
     setLoading(true);
     setError(null);
     try {
       const response = await userAPI.getFavorites();
+      if (!response.success) throw new Error('Failed to load favorites');
+      if (!enabledRef.current || requestGeneration !== requestGenerationRef.current) return;
       setFavorites(response.data.activities);
       setFavoriteIds(new Set(response.data.activities.map(activity => activity._id)));
     } catch (requestError) {
+      if (!enabledRef.current || requestGeneration !== requestGenerationRef.current) return;
       setError(getErrorMessage(requestError, 'Failed to load favorites'));
     } finally {
-      setLoading(false);
+      if (enabledRef.current && requestGeneration === requestGenerationRef.current) {
+        setLoading(false);
+      }
     }
   }, [enabled]);
 
@@ -40,22 +60,30 @@ export const useFavorites = (enabled: boolean) => {
   const toggleFavorite = useCallback(async (activityId: string) => {
     if (!enabled || mutatingIdRef.current) return;
 
+    const stateVersion = stateVersionRef.current;
     const isFavorite = favoriteIds.has(activityId);
     mutatingIdRef.current = activityId;
     setMutatingId(activityId);
     setError(null);
     try {
-      if (isFavorite) {
-        await userAPI.removeFavorite(activityId);
-      } else {
-        await userAPI.addFavorite(activityId);
+      const response = isFavorite
+        ? await userAPI.removeFavorite(activityId)
+        : await userAPI.addFavorite(activityId);
+      if (!response.success) {
+        throw new Error('Failed to update favorites');
+      }
+      if (!enabledRef.current || stateVersion !== stateVersionRef.current) {
+        return;
       }
       await reload();
     } catch (requestError) {
+      if (!enabledRef.current || stateVersion !== stateVersionRef.current) return;
       setError(getErrorMessage(requestError, 'Failed to update favorites'));
     } finally {
-      mutatingIdRef.current = null;
-      setMutatingId(null);
+      if (stateVersion === stateVersionRef.current) {
+        mutatingIdRef.current = null;
+        setMutatingId(null);
+      }
     }
   }, [enabled, favoriteIds, reload]);
 
