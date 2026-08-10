@@ -1,227 +1,41 @@
-.activity-detail-container {
-  padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
+.activity-detail-page { display: grid; gap: 24px; }
+.detail-skeleton { min-height: 520px; padding: 28px; border-radius: 16px; }
+.detail-hero { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(340px, .75fr); gap: 24px; align-items: stretch; }
+.detail-cover { min-height: 470px; overflow: hidden; border-radius: 18px; background: #eef2f6; }
+.detail-cover img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.detail-cover-placeholder { width: 100%; height: 100%; min-height: 470px; display: grid; place-content: center; justify-items: center; gap: 12px; color: #667085; background: linear-gradient(135deg, #edf3ff, #f2f4f7); }
+.detail-cover-placeholder .anticon { color: #98a2b3; font-size: 50px; }
+.detail-summary { border: 1px solid #e4e7ec; border-radius: 18px; box-shadow: 0 10px 30px rgba(16,24,40,.06); }
+.detail-summary .ant-card-body { height: 100%; display: flex; flex-direction: column; }
+.detail-summary h1 { margin: 18px 0 24px; color: #101828; font-size: clamp(28px, 3vw, 38px); line-height: 1.2; }
+.detail-meta { display: grid; gap: 15px; color: #475467; }
+.detail-meta span { display: grid; grid-template-columns: 20px 58px minmax(0,1fr); align-items: start; gap: 8px; line-height: 1.5; }
+.detail-meta .anticon { margin-top: 3px; color: #667085; }
+.detail-meta strong { color: #344054; }
+.capacity-block { margin-top: auto; padding-top: 28px; }
+.capacity-block > div { margin-bottom: 7px; display: flex; justify-content: space-between; gap: 16px; color: #667085; }
+.capacity-block strong { color: #344054; }
+.detail-price { margin: 12px 0 18px; color: #101828; font-size: 20px; font-weight: 700; }
+.detail-section { height: 100%; border: 1px solid #e4e7ec; border-radius: 14px; }
+.detail-section .ant-card-head { border-bottom-color: #f0f2f5; }
+.detail-section .ant-typography { color: #475467; line-height: 1.8; }
+.rating-summary { min-height: 90px; display: flex; align-items: center; gap: 18px; }
+.rating-summary > strong { color: #101828; font-size: 44px; }
+.rating-summary > div { display: grid; gap: 5px; color: #667085; }
+.comments-section .ant-list-item { padding: 20px 0; }
+.comment-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.comment-heading .ant-rate { font-size: 14px; }
+.comment-heading .ant-typography { margin-left: auto; font-size: 12px; }
+@media (max-width: 900px) {
+  .detail-hero { grid-template-columns: 1fr; }
+  .detail-cover, .detail-cover-placeholder { min-height: 360px; }
+  .detail-summary .ant-card-body { min-height: 430px; }
 }
-
-.activity-detail-loading {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 400px;
-}
-
-.activity-detail-card {
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
-}
-
-.activity-header {
-  display: flex;
-  gap: 24px;
-  margin-bottom: 0;
-}
-
-.activity-image {
-  flex: 1;
-  max-width: 400px;
-}
-
-.activity-image img {
-  width: 100%;
-  height: 300px;
-  object-fit: cover;
-  border-radius: 8px;
-}
-
-.activity-info {
-  flex: 2;
-  padding: 8px 0;
-}
-
-.activity-info h1 {
-  margin-bottom: 16px;
-  color: #1890ff;
-}
-
-.activity-tags {
-  margin-bottom: 20px;
-}
-
-.activity-meta {
-  margin-bottom: 20px;
-}
-
-.activity-meta .ant-space-item {
-  color: #666;
-}
-
-.activity-stats {
-  margin: 24px 0;
-}
-
-.activity-stats .ant-statistic {
-  text-align: center;
-}
-
-.activity-stats .ant-statistic-title {
-  color: #666;
-  font-size: 14px;
-}
-
-.activity-stats .ant-statistic-content {
-  color: #1890ff;
-}
-
-.activity-actions {
-  margin-top: 24px;
-}
-
-.activity-description {
-  margin: 24px 0;
-}
-
-.activity-description .ant-typography {
-  color: #666;
-  line-height: 1.8;
-  font-size: 16px;
-}
-
-.activity-comments {
-  margin-top: 24px;
-}
-
-.activity-comments h3 {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 24px;
-}
-
-.activity-comments .ant-list-item {
-  padding: 16px 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.activity-comments .ant-list-item:last-child {
-  border-bottom: none;
-}
-
-.activity-comments .ant-list-item-meta-title {
-  margin-bottom: 8px;
-}
-
-.activity-comments .ant-rate {
-  font-size: 14px;
-}
-
-.activity-comments .ant-list-item-meta-description {
-  color: #333;
-  line-height: 1.6;
-  margin-top: 8px;
-}
-
-/* 响应式设计 */
-@media (max-width: 992px) {
-  .activity-header {
-    flex-direction: column;
-  }
-  
-  .activity-image {
-    max-width: 100%;
-  }
-  
-  .activity-stats {
-    margin: 16px 0;
-  }
-}
-
-@media (max-width: 768px) {
-  .activity-detail-container {
-    padding: 16px;
-  }
-  
-  .activity-header {
-    gap: 16px;
-  }
-  
-  .activity-actions .ant-space {
-    flex-wrap: wrap;
-  }
-  
-  .activity-actions .ant-btn {
-    margin-bottom: 8px;
-  }
-}
-
-@media (max-width: 576px) {
-  .activity-stats .ant-col {
-    margin-bottom: 16px;
-  }
-  
-  .activity-actions .ant-btn {
-    width: 100%;
-    margin-bottom: 8px;
-  }
-  
-  .activity-image img {
-    height: 200px;
-  }
-}
-
-/* 评论模态框样式 */
-.ant-modal-content {
-  border-radius: 12px;
-}
-
-.ant-form-item-label > label {
-  font-weight: 500;
-}
-
-.ant-rate {
-  color: #faad14;
-}
-
-.ant-input,
-.ant-input:focus,
-.ant-input-focused {
-  border-color: #d9d9d9;
-}
-
-.ant-input:focus,
-.ant-input-focused {
-  border-color: #1890ff;
-  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
-}
-
-/* 按钮样式优化 */
-.ant-btn-primary {
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-  border: none;
-  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.3);
-}
-
-.ant-btn-primary:hover {
-  background: linear-gradient(135deg, #40a9ff 0%, #1890ff 100%);
-  box-shadow: 0 4px 12px rgba(24, 144, 255, 0.4);
-}
-
-.ant-btn:disabled {
-  background: #f5f5f5;
-  border-color: #d9d9d9;
-  color: #bfbfbf;
-}
-
-/* 标签样式 */
-.ant-tag {
-  border-radius: 16px;
-  padding: 4px 12px;
-  font-size: 12px;
-  border: none;
-}
-
-/* 统计卡片样式 */
-.ant-statistic-content {
-  font-weight: 600;
+@media (max-width: 600px) {
+  .detail-cover, .detail-cover-placeholder { min-height: 240px; border-radius: 14px; }
+  .detail-summary { border-radius: 14px; }
+  .detail-summary .ant-card-body { min-height: 400px; padding: 22px 18px; }
+  .detail-meta span { grid-template-columns: 18px 48px minmax(0,1fr); }
+  .comment-heading { align-items: flex-start; flex-direction: column; gap: 6px; }
+  .comment-heading .ant-typography { margin-left: 0; }
 }

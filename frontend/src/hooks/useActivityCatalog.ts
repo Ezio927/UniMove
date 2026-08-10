@@ -21,7 +21,7 @@ export const useActivityCatalog = (filters: ActivityFilters, isAuthenticated: bo
     try {
       const [activitiesResponse, ordersResponse] = await Promise.all([
         activityAPI.getActivities(filters),
-        isAuthenticated ? orderAPI.getUserOrders() : Promise.resolve(null)
+        isAuthenticated ? orderAPI.getUserOrders({ limit: 100, status: 'paid' }) : Promise.resolve(null)
       ]);
       setActivities(activitiesResponse.data.activities);
       setPagination(previous => ({ ...previous,
@@ -58,7 +58,7 @@ export const useActivityCatalog = (filters: ActivityFilters, isAuthenticated: bo
   const leaveActivity = async (activityId: string) => {
     setJoining(activityId);
     try {
-      const response = await orderAPI.getUserOrders();
+      const response = await orderAPI.getUserOrders({ limit: 100, status: 'paid' });
       const order = response.data.orders.find(
         item => item.activity._id === activityId && item.status === 'paid'
       );
