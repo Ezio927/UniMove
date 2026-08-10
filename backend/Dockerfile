@@ -32,5 +32,8 @@ EXPOSE 3001
 # 设置环境变量
 ENV NODE_ENV=production
 
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD node -e "fetch('http://localhost:3001/api/health').then((response) => { if (!response.ok) process.exit(1); }).catch(() => process.exit(1));"
+
 # 启动命令（使用构建后的 JS 文件）
 CMD ["node", "dist/index.js"]
