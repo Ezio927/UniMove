@@ -29,7 +29,20 @@ describe('UserService favorites', () => {
     );
   });
 
+  it('returns 404 for a missing activity without updating the user', async () => {
+    vi.spyOn(Activity, 'exists').mockResolvedValue(null);
+    const update = vi.spyOn(User, 'findByIdAndUpdate');
+
+    await expect(UserService.addFavorite(
+      '507f1f77bcf86cd799439011',
+      '507f1f77bcf86cd799439012'
+    )).rejects.toMatchObject({ statusCode: 404 });
+
+    expect(update).not.toHaveBeenCalled();
+  });
+
   it('uses pull so repeated removals stay idempotent', async () => {
+    const activitySpy = vi.spyOn(Activity, 'exists');
     const select = vi.fn().mockResolvedValue({ favoriteActivities: [] });
     const update = vi.spyOn(User, 'findByIdAndUpdate').mockReturnValue({ select } as never);
 
@@ -40,6 +53,43 @@ describe('UserService favorites', () => {
       { $pull: { favoriteActivities: '507f1f77bcf86cd799439012' } },
       { new: true }
     );
+    expect(activitySpy).not.toHaveBeenCalled();
+  });
+
+  it('returns 404 when the favorite-list user is missing', async () => {
+    vi.spyOn(User, 'findById').mockReturnValue({ select: vi.fn().mockResolvedValue(null) } as never);
+
+    await expect(UserService.getFavorites('507f1f77bcf86cd799439011'))
+      .rejects.toMatchObject({ statusCode: 404 });
+  });
+
+  it('returns an empty list for a legacy user without a favorites field', async () => {
+    vi.spyOn(User, 'findById').mockReturnValue({ select: vi.fn().mockResolvedValue({}) } as never);
+    const find = vi.spyOn(Activity, 'find').mockReturnValue({
+      sort: vi.fn().mockResolvedValue([])
+    } as never);
+
+    await expect(UserService.getFavorites('507f1f77bcf86cd799439011')).resolves.toEqual([]);
+    expect(find).not.toHaveBeenCalled();
+  });
+
+  it('returns 404 when the add-favorite user is missing', async () => {
+    vi.spyOn(Activity, 'exists').mockResolvedValue({ _id: '507f1f77bcf86cd799439012' } as never);
+    vi.spyOn(User, 'findByIdAndUpdate').mockReturnValue({ select: vi.fn().mockResolvedValue(null) } as never);
+
+    await expect(UserService.addFavorite(
+      '507f1f77bcf86cd799439011',
+      '507f1f77bcf86cd799439012'
+    )).rejects.toMatchObject({ statusCode: 404 });
+  });
+
+  it('returns 404 when the remove-favorite user is missing', async () => {
+    vi.spyOn(User, 'findByIdAndUpdate').mockReturnValue({ select: vi.fn().mockResolvedValue(null) } as never);
+
+    await expect(UserService.removeFavorite(
+      '507f1f77bcf86cd799439011',
+      '507f1f77bcf86cd799439012'
+    )).rejects.toMatchObject({ statusCode: 404 });
   });
 
   it('returns every existing favorite status ordered by activity creation time', async () => {

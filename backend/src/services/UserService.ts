@@ -55,6 +55,7 @@ export class UserService {
   static async getFavorites(userId: string) {
     const user = await User.findById(userId).select('favoriteActivities');
     if (!user) throw new AppError(404, '\u7528\u6237\u4e0d\u5b58\u5728');
+    if (!user.favoriteActivities?.length) return [];
 
     return Activity.find({ _id: { $in: user.favoriteActivities } }).sort({ createdAt: -1 });
   }
