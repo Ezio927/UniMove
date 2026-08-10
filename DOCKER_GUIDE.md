@@ -6,6 +6,8 @@
 
 `docker-compose.tools.yml` 只添加可选的 Mongo Express；它不属于核心栈，且仅映射为 `127.0.0.1:8081:8081`。
 
+为了保持本地分发最小，core Compose 中 backend 使用 MongoDB root 账户，仓库不再挂载初始化脚本或创建一个未使用的固定应用用户。这是已知的本地简化，不是生产凭据模型；生产环境应在外部数据库中配置独立、最小权限的应用用户，并通过受控密钥管理提供连接 URI。旧命名卷的审计与轮换见 [DATABASE_SETUP.md](DATABASE_SETUP.md)。
+
 ## 必需变量
 
 在启动的同一终端设置下列变量，不要写入仓库，也不要提交 `.env`：
@@ -41,7 +43,7 @@ Docker 会按健康状态排序启动：MongoDB 健康后启动 backend，backen
 - 前端健康检查：`http://127.0.0.1/health` 或 `http://localhost/health`
 - 经前端代理的 backend 健康检查：`http://127.0.0.1/api/health`
 
-预期结果是 `/health` 返回 `200 ok`，`/api/health` 返回 HTTP 200 且 JSON 中有 `success: true` 与数据库连接状态。Compose 为 backend 配置 `http://localhost` 和 `http://127.0.0.1` 两个精确 CORS Origin；两种浏览器入口均已通过运行时响应头验证。核心栈中不存在 `localhost:3001`、`localhost:27017` 或 `localhost:5173` 的 Docker 服务端口。
+预期结果是 `/health` 返回 `200 ok`，`/api/health` 在 Mongoose connected 时返回 HTTP 200、`success: true` 和 `database.status: connected`。任何非 connected 状态返回 HTTP 503 与 `success: false`；backend 镜像和 Compose healthcheck 都会因非 2xx 响应而失败。Compose 为 backend 配置 `http://localhost` 和 `http://127.0.0.1` 两个精确 CORS Origin；两种浏览器入口均已通过运行时响应头验证。核心栈不发布 backend、MongoDB 或 Vite 开发服务器端口。
 
 ## 可选 Mongo Express 工具
 
@@ -85,4 +87,4 @@ docker compose down
 - 先用临时值运行 `docker compose config`：它会发现未设置变量并显示 URI 的渲染结果；编码是否来自同一原始密码仍须由使用者保证。
 - 若服务没有变为 healthy，使用 `docker compose logs <service>` 检查；backend 的 JWT 密钥不满足最少长度会阻止启动。
 - 若端口 80 或 8081 被占用，应先识别占用者或在受控环境中调整回环映射；不要为了方便暴露 backend/MongoDB。
-- `/api/health` 当前检查的是 Mongoose 连接状态，未额外执行数据库读操作。
+- `/api/health` 依据 Mongoose `readyState` 判定，不额外执行数据库读；非 connected 状态会返回 HTTP 503 并使 Docker healthcheck 失败。

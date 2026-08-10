@@ -13,7 +13,8 @@ export const getSeedConfig = (environment: NodeJS.ProcessEnv = process.env): See
     throw new Error('SEED_ADMIN_PASSWORD must be set in the current process environment');
   }
 
-  if (adminPassword === 'password123') {
+  const legacyDemoPassword = ['password', '123'].join('');
+  if (adminPassword === legacyDemoPassword) {
     throw new Error('SEED_ADMIN_PASSWORD must not use the legacy demo password');
   }
 

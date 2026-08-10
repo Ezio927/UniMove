@@ -42,12 +42,15 @@ npm run verify
 
 `npm test` 顺序执行前后端测试；`npm run verify` 顺序执行 lint、类型检查、测试和构建，是本地提交前与 CI 使用的完整质量门禁。需要定位子项目问题时，可在对应目录运行 `npm run lint`、`npm run type-check`、`npm test` 或 `npm run build`。
 
-后端示例数据仅能通过 CLI 导入，不提供公开 HTTP 导入端点：
+后端示例数据仅能通过 CLI 导入，不提供公开 HTTP 导入端点。该 importer **只用于本地演示**：它会创建或复用一个 admin 用户，并清空、重建活动数据；`NODE_ENV=production` 时会直接拒绝执行。必须在当前进程环境中提供至少 12 字符的强临时密码，不要把它写入 `.env` 或仓库：
 
-```bash
-cd backend
-npm run import-data
+```powershell
+$env:SEED_ADMIN_PASSWORD = '<strong-temporary-value-with-at-least-12-characters>'
+npm run import-data --prefix backend
+Remove-Item Env:SEED_ADMIN_PASSWORD
 ```
+
+公开部署前必须删除该演示 admin，或通过受控流程重置其密码，并审计示例活动是否应保留。再次运行 importer 不会自动轮换已存在 admin 的密码。
 
 ## Docker 分发
 
@@ -62,7 +65,7 @@ $env:JWT_SECRET = 'at-least-32-disposable-or-production-secret-characters'
 docker compose up -d --build
 ```
 
-访问 `http://127.0.0.1/health` 应返回 `200 ok`；`http://127.0.0.1/api/health` 经反向代理检查 backend，成功响应包含 `success: true` 和数据库连接状态。Docker 的详细变量、日志、停止、重建和可选管理工具说明见 [DOCKER_GUIDE.md](DOCKER_GUIDE.md)。
+访问 `http://127.0.0.1/health` 应返回 `200 ok`；`http://127.0.0.1/api/health` 经反向代理检查 backend。仅当 Mongoose 状态为 connected 时，backend 才返回 HTTP 200 与 `success: true`；断开、连接中或断开中均返回 HTTP 503 与 `success: false`，因此 Docker healthcheck 也会失败。Docker 的详细变量、日志、停止、重建和可选管理工具说明见 [DOCKER_GUIDE.md](DOCKER_GUIDE.md)。
 
 ## API
 
@@ -92,13 +95,15 @@ UniMove/
 - 不提交 `.env`、真实密码、JWT 密钥或连接串；Docker 凭据仅通过当前进程环境传入。
 - MongoDB 与 backend 不映射宿主机端口；核心入口仅为回环绑定的前端代理。
 - `MONGO_ROOT_PASSWORD` 只用于 MongoDB 初始化/认证；`MONGO_ROOT_PASSWORD_URI` 只用于连接 URI，必须是相同原始密码的百分号编码表示。
+- 为了保持本地 Compose 配置最小，backend 当前使用 MongoDB root 账户；仓库不再创建一个未被 backend 使用的固定应用用户。生产环境应在外部数据库中配置权限最小化的独立应用用户，并通过受控密钥管理提供连接 URI。
 - Mongo Express 不是核心服务，启用后仍仅绑定 `127.0.0.1:8081`，并要求独立基本认证密码。
 - 发现安全问题请遵循 [SECURITY.md](SECURITY.md) 私下报告。
 
 ## 已知限制
 
 - 核心 Compose 默认不提供公网访问；生产部署应在受控反向代理、TLS、密钥管理和网络策略之后再暴露服务。
-- `/api/health` 报告 Mongoose 连接状态；它目前不执行额外的数据库读操作。
+- 本地 Compose 为简化使用 MongoDB root 账户，不是生产最小权限方案；生产应使用外部配置的独立最小权限用户。
+- `/api/health` 依据 Mongoose `readyState` 判定连接状态，不执行额外数据库读；任何非 connected 状态都会返回 HTTP 503 与 `success: false`。
 - 前端构建可能出现 Vite 大 chunk 建议，测试环境可能出现 jsdom pseudo-element 提示；已知提示不改变成功退出码。
 - Docker 的运行时验证依赖本机 Docker Engine 和可用网络；CI 静态检查不替代部署环境的运行时验证。
 
