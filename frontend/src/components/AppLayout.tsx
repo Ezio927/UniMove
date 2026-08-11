@@ -17,6 +17,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+  const [userMenuOpen, setUserMenuOpen] = React.useState(false);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -80,8 +81,20 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
               <Button icon={<PlusOutlined />} onClick={() => navigate('/activities/create')}>创建活动</Button>
             )}
             {isAuthenticated ? (
-              <Dropdown menu={userMenu} placement="bottomRight" trigger={['click']}>
-                <Button type="text" className="user-button" aria-label="打开用户菜单" aria-haspopup="menu">
+              <Dropdown
+                menu={userMenu}
+                placement="bottomRight"
+                trigger={['click']}
+                open={userMenuOpen}
+                onOpenChange={setUserMenuOpen}
+              >
+                <Button
+                  type="text"
+                  className="user-button"
+                  aria-label="打开用户菜单"
+                  aria-haspopup="menu"
+                  aria-expanded={userMenuOpen}
+                >
                   <Space>
                     <Avatar
                       size="small"

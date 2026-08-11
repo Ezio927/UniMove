@@ -45,7 +45,10 @@ afterEach(() => {
 describe('AppLayout user menu', () => {
   it('opens the existing profile and logout actions on click', async () => {
     renderAuthenticatedLayout();
-    fireEvent.click(screen.getByRole('button', { name: '打开用户菜单' }));
+    const userMenuButton = screen.getByRole('button', { name: '打开用户菜单' });
+    expect(userMenuButton).toHaveAttribute('aria-expanded', 'false');
+    fireEvent.click(userMenuButton);
+    expect(userMenuButton).toHaveAttribute('aria-expanded', 'true');
     expect(document.querySelector('.ant-dropdown')).not.toHaveClass('ant-dropdown-hidden');
     expect(await screen.findByText('个人中心')).toBeInTheDocument();
     expect(screen.getByText('退出登录')).toBeInTheDocument();
@@ -57,9 +60,11 @@ describe('AppLayout user menu', () => {
     expect(document.querySelector('.ant-dropdown')).not.toHaveClass('ant-dropdown-hidden');
     fireEvent.click(await screen.findByText('退出登录'));
     expect(store.getState().auth.isAuthenticated).toBe(false);
+    expect(store.getState().auth.user).toBeNull();
+    expect(store.getState().auth.token).toBeNull();
     expect(localStorage.getItem('token')).toBeNull();
     expect(localStorage.getItem('user')).toBeNull();
-    expect(screen.getByTestId('location')).toHaveTextContent('/');
+    expect(screen.getByTestId('location')).toHaveTextContent(/^\/$/);
   });
 
   it('keeps login and registration actions for guests', () => {
