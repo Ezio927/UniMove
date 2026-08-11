@@ -56,6 +56,7 @@ jobs:
   docker-build:
     name: Docker build (${{ matrix.component }})
     runs-on: ubuntu-latest
+    needs: [frontend, backend]
     permissions:
       contents: read
       packages: write
@@ -78,7 +79,7 @@ jobs:
         with:
           images: ghcr.io/ezio927/unimove-${{ matrix.component }}
           tags: |
-            type=sha,format=long
+            type=sha,format=long,prefix=
             type=raw,value=latest,enable={{is_default_branch}}
       - uses: docker/build-push-action@v6
         with:

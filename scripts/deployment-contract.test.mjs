@@ -19,10 +19,21 @@ test('backend container healthcheck honors the platform PORT', () => {
   assert.match(read('backend/Dockerfile'), /process\.env\.PORT\s*\|\|\s*3001/);
 });
 
-test('GitHub CI publishes both images with least package permission', () => {
+test('GitHub CI publishes both images only after quality gates with scoped package permission', () => {
   const workflow = read('.github/workflows/ci.yml');
-  assert.match(workflow, /packages: write/);
-  assert.match(workflow, /ghcr\.io\/ezio927\/unimove-/);
-  assert.match(workflow, /docker\/login-action@v3/);
-  assert.match(workflow, /push: \$\{\{ github\.event_name == 'push' && github\.ref == 'refs\/heads\/main' \}\}/);
+  const start = workflow.indexOf('  docker-build:');
+  const end = workflow.indexOf('\n  dependency-review:', start);
+  assert.notEqual(start, -1, 'docker-build job is required');
+  assert.notEqual(end, -1, 'docker-build block must end before dependency-review');
+  const dockerBuild = workflow.slice(start, end);
+
+  assert.match(workflow, /^permissions:\r?\n  contents: read\r?$/m);
+  assert.match(dockerBuild, /^    needs: \[frontend, backend\]$/m);
+  assert.match(dockerBuild, /^    permissions:\r?\n      contents: read\r?\n      packages: write\r?$/m);
+  assert.match(dockerBuild, /component: \[backend, frontend\]/);
+  assert.match(dockerBuild, /ghcr\.io\/ezio927\/unimove-\$\{\{ matrix\.component \}\}/);
+  assert.match(dockerBuild, /if: github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'/);
+  assert.match(dockerBuild, /push: \$\{\{ github\.event_name == 'push' && github\.ref == 'refs\/heads\/main' \}\}/);
+  assert.match(dockerBuild, /type=sha,format=long,prefix=/);
+  assert.match(dockerBuild, /type=raw,value=latest,enable=\{\{is_default_branch\}\}/);
 });

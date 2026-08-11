@@ -28,6 +28,8 @@ UniMove 的认证、活动、订单、评论、前端界面和既有 Docker 配�
 
 根目录的 `npm run verify` 顺序执行前后端 lint、类型检查、测试与构建。Task 1 的实际结果是后端 14 个测试文件/46 项测试、前端 8 个测试文件/40 项测试均通过；Vite chunk 建议和 jsdom pseudo-element 提示不影响退出码。
 
+Task 3 的配置 PR 证据顺序固定为：预验证 → whole-branch review → 记录实际证据 → 提交；在 review 存在前不得记录复审通过。
+
 Task 3 使用仅进程本地的伪值验证了核心和 tools Compose 渲染、镜像构建及运行时健康检查。核心栈在 `unimove-validation` 项目名下运行成功：frontend、backend、mongodb 均为 healthy，`GET http://127.0.0.1/health` 返回 `200 ok`，`GET http://127.0.0.1/api/health` 返回 `200`、`success=True`、`database=connected`。`03b1efb` 后又分别以 `Origin: http://127.0.0.1` 和 `Origin: http://localhost` 请求同一健康端点，两次均返回 200 与完全匹配的 `Access-Control-Allow-Origin`。启动曾因短于 32 字符的 JWT 被 backend 拒绝；以满足既有校验的临时 JWT 重试成功。清理仅使用项目作用域的 `down`，未删除卷或原有 Docker 资源。
 
 终审修复后，根 `npm run verify` 再次通过（backend 16 文件/53 测试、frontend 8 文件/40 测试）。隔离 `unimove-finalfix-runtime` 栈初始三服务 healthy；停止该项目 MongoDB 后 `/api/health` 返回 503、`success=false`、`database=disconnected`，重启后恢复三服务 healthy 与 200/connected。项目级 `down` 未使用 `-v`，容器与网络清零、1 个命名卷保留，预存 `d965b6c27f62` 未改变。core/tools Compose、两个 Docker build、ignore 内容、扩展凭据扫描和 diff 门禁均通过。
