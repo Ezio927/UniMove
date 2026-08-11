@@ -52,9 +52,12 @@ Remove-Item Env:SEED_ADMIN_PASSWORD
 
 公开部署前必须删除该演示 admin，或通过受控流程重置其密码，并审计示例活动是否应保留。再次运行 importer 不会自动轮换已存在 admin 的密码。
 
-## GHCR image distribution
+## Live deployment
 
-After the first successful `main` publish, change each package's visibility to **Public** in GitHub Packages. Images are available as `ghcr.io/ezio927/unimove-frontend` and `ghcr.io/ezio927/unimove-backend`; anonymous users can pull them with:
+Public WebUI: https://unimove-ezio927-web.onrender.com
+API health: https://unimove-ezio927-api.onrender.com/api/health
+
+The public GHCR package pages are [frontend](https://ghcr.io/ezio927/unimove-frontend) and [backend](https://ghcr.io/ezio927/unimove-backend). Anonymous users can pull the public images with:
 
 ```bash
 docker pull ghcr.io/ezio927/unimove-frontend:latest
@@ -62,6 +65,17 @@ docker pull ghcr.io/ezio927/unimove-backend:latest
 ```
 
 For deployments, prefer the immutable commit-SHA tag over `latest`, for example `ghcr.io/ezio927/unimove-frontend:<commit-sha>`.
+
+```mermaid
+flowchart LR
+  Browser[Browser] --> WebUI[Render WebUI]
+  WebUI --> API[Render API]
+  API --> Atlas[MongoDB Atlas]
+```
+
+CI/CD: PR #28 merged to `main` as `ba8ef6f`; main CI run `31471843621` passed and published the public images. PR #30 merged to `main` as `6f6160c`; main CI run `31481673894` passed. The student manually entered deployment secrets and performed account and Atlas dashboard actions. Secret values remain only in the Atlas and Render dashboards; Agents neither received nor persisted them. Atlas uses the `unimove_app` read/write application user scoped to the `unimove` database, and two Render outbound CIDRs are allowlisted without a permanent `0.0.0.0/0` rule.
+
+Render's free tier can cold-start after inactivity. This limitation is documented, but the backend cold-wake and health-recovery observation is still pending. The deployed logout dropdown remains a known post-deployment defect under investigation; it is not claimed fixed by PR #30.
 
 ## Docker 分发
 
