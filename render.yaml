@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: unimove-ezio927-web
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    autoDeployTrigger: checksPass
+    envVars:
+      - key: VITE_API_URL
+        sync: false
+    routes:
+      - source: /*
+        destination: /index.html
+        type: rewrite
+
+  - type: web
+    name: unimove-ezio927-api
+    runtime: docker
+    plan: free
+    region: singapore
+    rootDir: backend
+    autoDeployTrigger: checksPass
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: MONGODB_URI
+        sync: false
+      - key: FRONTEND_URL
+        sync: false

@@ -54,3 +54,11 @@ UniMove 是学生已有项目。2026-08-10 起，课程工作以该项目为 B �
 ## 当前限制和后续
 
 `/api/health` 依据 Mongoose 连接状态而不发起额外数据库读，但任何非 connected 状态均返回 503/`success: false`。Core Compose 为本地简化使用 root 账户；生产必须提供外部最小权限应用用户。旧卷和 seed admin 的处置保持显式人工操作，不自动删除数据或账户。核心发布仅绑定回环；线上暴露必须由学生在有授权的部署平台中完成 TLS、密钥管理和网络策略。P10 部署和 P11 学生反思仍 pending；`superpowers:finishing-a-development-branch` 尚未执行。
+
+## P10：配置 PR 与 `main` 发布门禁的实际证据
+
+`render_contract_impl`（`gpt-5.6-terra` / medium）按 Task1 TDD 在 `bc0f12e` 实现 Render 合约；`render_contract_review`（`gpt-5.6-terra` / high）完成 spec+quality review，approved、0 findings。Task1 RED 使用 `node --test scripts/deployment-contract.test.mjs`，GREEN 使用 `npm run test:deployment` 和 `npm test`。`ghcr_publish_impl`（`gpt-5.6-terra` / medium）按 Task2 TDD 在 `7c78736` 实现 GHCR 发布；`ghcr_publish_review`（`gpt-5.6-terra` / high）approved、0 findings，RED/GREEN 均为 `npm run test:deployment`（分别 exit 1/0）。
+
+`config_gate_impl`（`gpt-5.6-terra` / medium）执行 pre-PR verification：`npm run verify`、两份带进程本地 dummy 值且不输出渲染结果的 Compose config、`git diff --check` 均 exit 0；161 tracked files credential scan 为 0 findings。`render_config_whole_review`（`gpt-5.6-sol` / high）报告 3 Important（Docker `needs` 门禁、GHCR 契约不足、SHA prefix）和 2 Minor（README 测试说明、计划证据顺序）；修复提交为 `d2a51b7`、`a2be771`。`render_config_fix_rereview`（`gpt-5.6-terra` / high）round1 记录 4 addressed/1 open（login step 条件未精确绑定），round2 结论为 all addressed/no new breakage；round2 修复提交 `2ba4e68`。
+
+人类实际批准为 Render+Atlas+GHCR 设计、设计评审和 subagent-driven 方案；尚未批准配置 PR 或 merge。P10 外部 gates 继续 pending：配置 PR/merge、`main` 首次 GHCR 发布和 Public、Atlas/Render、真实 URL、NJU GitLab 与学生 `REFLECTION.md`。`superpowers:finishing-a-development-branch` 未运行。

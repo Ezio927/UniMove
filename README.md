@@ -40,7 +40,7 @@ npm test
 npm run verify
 ```
 
-`npm test` 顺序执行前后端测试；`npm run verify` 顺序执行 lint、类型检查、测试和构建，是本地提交前与 CI 使用的完整质量门禁。需要定位子项目问题时，可在对应目录运行 `npm run lint`、`npm run type-check`、`npm test` 或 `npm run build`。
+`npm test` 顺序执行部署合约、后端和前端测试；`npm run verify` 顺序执行 lint、类型检查、测试和构建，是本地提交前与 CI 使用的完整质量门禁。需要定位子项目问题时，可在对应目录运行 `npm run lint`、`npm run type-check`、`npm test` 或 `npm run build`。
 
 后端示例数据仅能通过 CLI 导入，不提供公开 HTTP 导入端点。该 importer **只用于本地演示**：它会创建或复用一个 admin 用户，并清空、重建活动数据；`NODE_ENV=production` 时会直接拒绝执行。必须在当前进程环境中提供至少 12 字符的强临时密码，不要把它写入 `.env` 或仓库：
 
@@ -51,6 +51,17 @@ Remove-Item Env:SEED_ADMIN_PASSWORD
 ```
 
 公开部署前必须删除该演示 admin，或通过受控流程重置其密码，并审计示例活动是否应保留。再次运行 importer 不会自动轮换已存在 admin 的密码。
+
+## GHCR image distribution
+
+After the first successful `main` publish, change each package's visibility to **Public** in GitHub Packages. Images are available as `ghcr.io/ezio927/unimove-frontend` and `ghcr.io/ezio927/unimove-backend`; anonymous users can pull them with:
+
+```bash
+docker pull ghcr.io/ezio927/unimove-frontend:latest
+docker pull ghcr.io/ezio927/unimove-backend:latest
+```
+
+For deployments, prefer the immutable commit-SHA tag over `latest`, for example `ghcr.io/ezio927/unimove-frontend:<commit-sha>`.
 
 ## Docker 分发
 
