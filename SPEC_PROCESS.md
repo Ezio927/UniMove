@@ -82,4 +82,6 @@ The student manually entered secrets and performed account and Atlas dashboard a
 
 Prewrite 提交 `5b8cfea`、`5d3c546` 经 review/fix 完成；教师澄清提交 `da5bc1a`、`f9fe884` 经 scoped review 获 APPROVE；反思提交 `75878ad` 经独立复审获 PASS。最新门禁记录为：`npm run verify` exit 0（deployment 3/3、backend 53/53、frontend 43/43，lint/type-check/build 通过），两个 Docker build exit 0，credential scan 0 findings，WebUI/API/`/activities` 深链/两个 GHCR 页面共五个 URL HTTP 200，仓库外 `submission.jsonc` valid。
 
-随后 `final_submission_review` 给出 **Not Ready for PR**（0 Critical / 2 Important / 1 Minor）。本提交是该审查 findings 的唯一 fix wave；对应 scoped re-review 尚未发生，因而不得记录为通过。P10 保持完成；提交后维护分类不变；P11 继续等待 PR/CI/merge、打包候选检查和最终公网复核。
+随后 `final_submission_review` 给出 **Not Ready for PR**（0 Critical / 2 Important / 1 Minor）。唯一 fix wave `4ab9b76` 处理全部 findings；scoped re-review 判定三项均 ADDRESSED、无新 Critical/Important，结论为 **Ready for PR: Yes**。
+
+学生选择并授权 PR/merge。PR #31 的五项检查全部通过并 squash merge 为 `f247789`；合并后 GitHub CI run `31500405496` 再次通过 Backend、Frontend 与两个 Docker build。由 `origin/main` 生成的归档候选包含 193 个 tracked 条目，必交文件齐全，不含真实 `.env`、`node_modules` 或 `.git`，`submission.jsonc` 保持在归档外；最后一次 WebUI、API health、`/activities` 深链和两个 GHCR 页面复核均为 HTTP 200。P11 据此完成，课程文档在本状态提交后冻结，已列出的 UI 与运维事项转入提交后维护。

@@ -79,4 +79,11 @@ The student manually entered secrets and performed account and Atlas dashboard a
 - Prewrite：`5b8cfea`、`5d3c546`，经历 review/fix 后完成；教师澄清：`da5bc1a`、`f9fe884`，后续 scoped review 结论为 APPROVE。Reflection：`75878ad`，1849 CJK，学生确认九项实质观点，AI 仅作结构/语言润色，独立 `reflection_review` 为 PASS。
 - 最新 final gates：`npm run verify` exit 0（deployment 3/3、backend 53/53、frontend 43/43，lint/type-check/build 通过）；两个 Docker build exit 0；credential scan 0 findings；WebUI、API、`/activities` 深链及两个 GHCR 页面共五个 URL 均 HTTP 200；仓库外 `submission.jsonc` 已验证为 valid。
 - `final_submission_review` 实际结论：**Not Ready for PR**，0 Critical / 2 Important / 1 Minor。本提交是对这些 findings 的唯一 fix wave；对应 scoped re-review 尚未发生，不记录为通过。
-- P10 保持完成。脱敏活动/活动依赖 smoke、Dropdown/Select 弹层问题和可选 Atlas 临时个人 IP 清理仍为提交后维护。P11 保持未完成，仅待最终证据分支 PR/CI/merge、打包候选检查和最终公网复核。
+- P10 保持完成。脱敏活动/活动依赖 smoke、Dropdown/Select 弹层问题和可选 Atlas 临时个人 IP 清理仍为提交后维护。本条记录的是集成前状态；当时 P11 仅待最终证据分支 PR/CI/merge、打包候选检查和最终公网复核。
+
+## 2026-08-11 / P11 最终集成与归档门禁
+
+- `final_submission_review` 初审为 **Not Ready for PR**（0 Critical / 2 Important / 1 Minor）；唯一 fix wave `4ab9b76` 后，scoped re-review 判定 3 项全部 ADDRESSED、无新 Critical/Important，结论为 **Ready for PR: Yes**。
+- 学生选择并授权推送、创建 PR 和合并。PR #31 的 Backend、Frontend、Dependency Review 与两个 Docker build 检查全部通过，随后 squash merge 为 `f247789`。合并后 GitHub CI run `31500405496` 再次通过 Backend、Frontend 和两个 Docker build；Dependency Review 在 push 事件中按配置跳过。
+- 归档候选由 `origin/main` 的 tracked 内容生成，共 193 个条目；必交文件齐全，不含真实 `.env`、`node_modules` 或 `.git`，且仓库外 `submission.jsonc` 未被装入压缩包。最后一次公网复核确认 WebUI、API health、`/activities` 深链和两个 GHCR 页面均为 HTTP 200。
+- P11 据此完成。课程提交文档在本状态提交后冻结；脱敏活动数据、活动依赖 smoke、Dropdown/Select 弹层问题与可选 Atlas 临时个人 IP 清理继续作为提交后代码/运维维护事项。

@@ -22,7 +22,7 @@ UniMove 的认证、活动、订单、评论、前端界面和既有 Docker 配�
 - [x] P8：提供根目录一键质量门禁和 GitLab `unit-test`/质量 CI（`e4c4f84fce0a1d44933c29b25bfd7d950d7e9025`、`6686bb6e5ace9b482f210a1177db77460eb09237`）；本阶段最终 `npm run verify` 已通过。
 - [x] P9：完成可复核 Docker 分发、安全边界、README 与提交文档（既有提交 `72ac455`、`826f518`、`03b1efb`、`71cb693`、`e0f4868`；终审集中修复 `a13e3b7`、`895f7bb`；证据 `90b0eab`）。`final_infra_review`（`gpt-5.6-sol` / max）对 `ac6d52c..90b0eab` 完成 scoped re-review，结论为 **APPROVE / Ready to merge: Yes**：4 项 Important 与 1 项 Minor 全部 ADDRESSED，无新 Critical/Important；定向复跑 2 个测试文件/7 项测试全部通过。
 - [x] P10：配置 PR/merge 后准备可访问的线上 WebUI。依赖 P9；原书面计划阶段曾将 NJU GitLab 与若干运行检查列为门禁。根据 2026-08-11 教师说明和学生裁决，已由公开 WebUI/API、GHCR、GitHub `main` CI、Docker 分发和 cold-wake/recovery 观察证据完成；NJU Git 是可接受的代码托管替代项，无需第二个镜像或 pipeline。
-- [ ] P11：`REFLECTION.md` 已完成并通过独立复审；仍须完成最终证据分支 PR/CI/merge、打包候选检查和最终公网复核。依赖 P3–P10。
+- [x] P11：`REFLECTION.md` 已完成并通过独立复审；最终证据 PR #31 已合并，合并后 CI、打包候选检查和最终公网复核均通过。依赖 P3–P10。
 
 ## 本阶段验证证据
 
@@ -57,4 +57,6 @@ PR #28 merged to `main` as `ba8ef6f`; main CI run `31471843621` passed and publi
 
 证据预写由 `5b8cfea`、`5d3c546` 及其 review/fix 完成；教师澄清由 `da5bc1a`、`f9fe884` 记录并获 scoped APPROVE；反思由 `75878ad` 提交并获独立 PASS。最终门禁证据为：`npm run verify` 退出 0（deployment 3、backend 53、frontend 43，lint/type-check/build 通过）、两个 Docker build 退出 0、credential scan 0 findings、WebUI/API/深链/两个 GHCR 页面共五个 URL 均 HTTP 200，且仓库外 `submission.jsonc` 有效。
 
-`final_submission_review` 的实际结论为 **Not Ready for PR**，0 Critical / 2 Important / 1 Minor；本提交仅处理该审查的全部文档发现，对应 scoped re-review 尚未发生，也不预称通过。P11 继续等待 PR/CI/merge、打包候选检查和最终公网复核。
+`final_submission_review` 的初审结论为 **Not Ready for PR**，0 Critical / 2 Important / 1 Minor；唯一 fix wave `4ab9b76` 处理全部发现，随后 scoped re-review 确认 3 项均 ADDRESSED、无新 Critical/Important，结论为 **Ready for PR: Yes**。
+
+PR #31 已 squash merge 为 `f247789`，合并后的 GitHub CI run `31500405496` 中 Backend、Frontend 与两个 Docker build 均通过。仓库归档候选包含 193 个 tracked 条目，必交文件齐全且不含真实 `.env`、`node_modules` 或 `.git`；`submission.jsonc` 保持在归档外。最终公网复核中 WebUI、API health、`/activities` 深链和两个 GHCR 页面均为 HTTP 200。据此 P11 完成，课程文档在本状态提交后冻结。
