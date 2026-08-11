@@ -68,4 +68,12 @@ Earlier statements that PR/merge, public GHCR, Render/Atlas, and live URLs were 
 
 The student manually entered secrets and performed account and Atlas dashboard actions; Agents neither received nor persisted secret values. Atlas `unimove_app` has read/write access scoped to `unimove`; two Render outbound CIDRs are allowlisted and there is no permanent `0.0.0.0/0`. The Render free-tier cold-start limitation is documented, but cold-wake/health-recovery is not claimed passed. The deployed logout dropdown remains under investigation and is not recorded as fixed by PR #30.
 
-Task 4, P10, and P11 remain unchecked. Required remaining gates are: 2--3 sanitized admin-created activities, activity-dependent ordinary-account UI smoke, Render cold-wake/health-recovery, temporary personal Atlas-IP removal followed by CIDR/no-`0.0.0.0/0` confirmation, designated NJU GitLab URL and passing latest `unit-test` job, student-authored 1500--2500 Chinese-character `REFLECTION.md`, and final whole-branch review, PR approval/merge, and public re-check.
+该段为澄清前的历史状态，现由下列教师说明和人类裁决取代。
+
+## 2026-08-11 Teacher submission clarification
+
+教师说明确认源代码仓库（包括要求文档）应压缩提交至 `selearning`，而 `submission.jsonc` 保持原名、与压缩包并列且位于源仓库外。模板中的 GitHub 仅为示例，NJU Git 也可；故现有公开 GitHub 仓库是本次提交可接受的仓库目标，无需额外 NJU GitLab 镜像或通过的 pipeline。已部署应用的 `deploy_release_url` 取公开 WebUI。
+
+据此人类裁决，P10 完成的证据是公开 WebUI、API health 和 `/activities` 深链、两个公开 GHCR 页面均 HTTP 200，`main` GitHub CI 通过，公开 Docker 镜像/链接存在，并已观察到 cold-wake/recovery。早期书面计划确曾把 NJU GitLab 与若干运维检查列为门禁；本次裁决只替换当前提交门禁，并不否认该历史要求。
+
+脱敏演示活动与活动依赖 smoke、Ant Design Dropdown/Select 弹层缺陷的调查/修复，以及可选移除临时 Atlas 个人 IP（保留两个 Render CIDR、无 `0.0.0.0/0`）均改列为提交后维护，非 P10 阻塞。`E:\project\AI4se\submission.jsonc` 已在仓库外填入学生身份、公开 GitHub 仓库 URL、`is_deployed: true` 和公开 WebUI URL，过程文档不复制身份或 JSONC。P11 仍仅待学生本人 1500--2500 字中文 `REFLECTION.md`、最终证据分支 review/PR/CI/merge、打包和最终公网复核；整体作业未完成。

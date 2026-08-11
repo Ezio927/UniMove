@@ -64,4 +64,12 @@
 
 PR #28 merged to `main` as `ba8ef6f`; main CI run `31471843621` passed and published public GHCR images. PR #30 merged to `main` as `6f6160c`; main CI run `31481673894` passed. Live checks confirmed API health HTTP 200 with `success=true` and `database.status=connected`, previously verified exact production CORS, WebUI root and `/activities` deep link HTTP 200, and both public GHCR package pages HTTP 200. Atlas `unimove_app` is read/write scoped to database `unimove`; two Render outbound CIDRs are allowlisted, with no permanent `0.0.0.0/0`. Sanitized ordinary-account registration, login, profile, and empty-favorites smoke passed.
 
-The student manually entered secrets and performed account and Atlas dashboard actions; Agents did not receive or persist secret values. Render free-tier cold-start remains a documented limitation; cold-wake/health-recovery has not passed. The deployed logout dropdown remains a known post-deployment defect under investigation, not fixed merely because PR #30 deployed. Task 4, P10, P11, and Task 5 remain pending; outstanding gates are activities and activity-dependent smoke, cold-wake/health-recovery, removal of the temporary personal Atlas IP while retaining the two Render CIDRs and confirming no `0.0.0.0/0`, NJU GitLab `unit-test` pipeline, student `REFLECTION.md`, and final review/merge/public re-check.
+The student manually entered secrets and performed account and Atlas dashboard actions; Agents did not receive or persist secret values. This pre-clarification status is superseded by the following teacher ruling.
+
+## 2026-08-11 / Teacher submission clarification and status correction
+
+- 教师说明：完整源代码仓库（含所需文档）压缩提交至 `selearning`；`submission.jsonc` 与压缩包并列提交，不改名且不放入源代码压缩包。GitHub 为模板示例，NJU Git 也可；现有公开 GitHub 仓库是可接受目标，无需第二个 NJU GitLab 镜像或 pipeline。已部署应用的 `deploy_release_url` 是公开 WebUI 链接。
+- 人类裁决：P10 以已有公开 WebUI/API health/`/activities` 深链/GHCR HTTP 200、通过的 GitHub `main` CI、公开 Docker 镜像与链接、以及 cold-wake/recovery 观察为准完成。此裁决不否认早期书面计划曾列出 NJU GitLab 与运行检查；它只修订本次提交的当前门禁。
+- 提交后维护（非 P10 阻塞）：创建脱敏演示活动并运行活动依赖 smoke；调查/修复 Ant Design Dropdown/Select 弹层问题；可选删除临时 Atlas 个人 IP，同时保留两个 Render CIDR 且不使用 `0.0.0.0/0`。
+- `E:\project\AI4se\submission.jsonc` 已在源仓库外由学生填写学生身份、公开 GitHub 仓库 URL、`is_deployed: true` 和公开 WebUI URL；Agent 未复制其身份数据或 JSONC 到仓库。
+- P11 与整体作业仍未完成。P11 仅待学生本人 1500--2500 字中文 `REFLECTION.md`、最终证据分支 review/PR/CI/merge、打包和最终公网复核。
