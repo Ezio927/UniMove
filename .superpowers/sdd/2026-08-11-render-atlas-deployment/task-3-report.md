@@ -40,4 +40,4 @@ RED command: `npm run test:deployment` exited `1`; the new third contract test f
 
 GREEN command: `npm run test:deployment` exited `0`; all 3 deployment-contract tests passed.  Static YAML parse/assertions (job names/permissions/matrix/metadata tag) exited `0`, and `git diff --check` exited `0`.  An initial static-check wrapper incorrectly selected the metadata step by array index and exited `1`; it did not modify configuration and was rerun by stable `id: meta` lookup to the successful result above.
 
-Changed files: `.github/workflows/ci.yml`, `scripts/deployment-contract.test.mjs`, `README.md`, `PLAN.md`, and this report.  No push occurred.  This entry records the supplied whole-branch findings and their fixes only; scoped re-review remains pending.
+Changed files: `.github/workflows/ci.yml`, `scripts/deployment-contract.test.mjs`, `README.md`, `PLAN.md`, and this report.  Commit: `d2a51b7` (`fix: gate GHCR publication`); no push occurred.  This entry records the supplied whole-branch findings and their fixes only; scoped re-review remains pending.
