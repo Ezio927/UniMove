@@ -76,4 +76,10 @@ The student manually entered secrets and performed account and Atlas dashboard a
 
 据此人类裁决，P10 完成的证据是公开 WebUI、API health 和 `/activities` 深链、两个公开 GHCR 页面均 HTTP 200，`main` GitHub CI 通过，公开 Docker 镜像/链接存在，并已观察到 cold-wake/recovery。早期书面计划确曾把 NJU GitLab 与若干运维检查列为门禁；本次裁决只替换当前提交门禁，并不否认该历史要求。
 
-脱敏演示活动与活动依赖 smoke、Ant Design Dropdown/Select 弹层缺陷的调查/修复，以及可选移除临时 Atlas 个人 IP（保留两个 Render CIDR、无 `0.0.0.0/0`）均改列为提交后维护，非 P10 阻塞。`E:\project\AI4se\submission.jsonc` 已在仓库外填入学生身份、公开 GitHub 仓库 URL、`is_deployed: true` 和公开 WebUI URL，过程文档不复制身份或 JSONC。P11 仍仅待学生本人 1500--2500 字中文 `REFLECTION.md`、最终证据分支 review/PR/CI/merge、打包和最终公网复核；整体作业未完成。
+脱敏演示活动与活动依赖 smoke、Ant Design Dropdown/Select 弹层缺陷的调查/修复，以及可选移除临时 Atlas 个人 IP（保留两个 Render CIDR、无 `0.0.0.0/0`）均改列为提交后维护，非 P10 阻塞。`E:\project\AI4se\submission.jsonc` 已在仓库外填入学生身份、公开 GitHub 仓库 URL、`is_deployed: true` 和公开 WebUI URL，过程文档不复制身份或 JSONC。`REFLECTION.md` 已在 `75878ad` 完成（1849 CJK；九项学生确认观点；AI 仅作结构/语言润色），且独立 `reflection_review` 为 PASS。P11 仍仅待最终证据分支 PR/CI/merge、打包候选检查和最终公网复核；整体作业未完成。
+
+## Final evidence branch process and current verdict
+
+Prewrite 提交 `5b8cfea`、`5d3c546` 经 review/fix 完成；教师澄清提交 `da5bc1a`、`f9fe884` 经 scoped review 获 APPROVE；反思提交 `75878ad` 经独立复审获 PASS。最新门禁记录为：`npm run verify` exit 0（deployment 3/3、backend 53/53、frontend 43/43，lint/type-check/build 通过），两个 Docker build exit 0，credential scan 0 findings，WebUI/API/`/activities` 深链/两个 GHCR 页面共五个 URL HTTP 200，仓库外 `submission.jsonc` valid。
+
+随后 `final_submission_review` 给出 **Not Ready for PR**（0 Critical / 2 Important / 1 Minor）。本提交是该审查 findings 的唯一 fix wave；对应 scoped re-review 尚未发生，因而不得记录为通过。P10 保持完成；提交后维护分类不变；P11 继续等待 PR/CI/merge、打包候选检查和最终公网复核。

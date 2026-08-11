@@ -22,7 +22,7 @@ UniMove 的认证、活动、订单、评论、前端界面和既有 Docker 配�
 - [x] P8：提供根目录一键质量门禁和 GitLab `unit-test`/质量 CI（`e4c4f84fce0a1d44933c29b25bfd7d950d7e9025`、`6686bb6e5ace9b482f210a1177db77460eb09237`）；本阶段最终 `npm run verify` 已通过。
 - [x] P9：完成可复核 Docker 分发、安全边界、README 与提交文档（既有提交 `72ac455`、`826f518`、`03b1efb`、`71cb693`、`e0f4868`；终审集中修复 `a13e3b7`、`895f7bb`；证据 `90b0eab`）。`final_infra_review`（`gpt-5.6-sol` / max）对 `ac6d52c..90b0eab` 完成 scoped re-review，结论为 **APPROVE / Ready to merge: Yes**：4 项 Important 与 1 项 Minor 全部 ADDRESSED，无新 Critical/Important；定向复跑 2 个测试文件/7 项测试全部通过。
 - [x] P10：配置 PR/merge 后准备可访问的线上 WebUI。依赖 P9；原书面计划阶段曾将 NJU GitLab 与若干运行检查列为门禁。根据 2026-08-11 教师说明和学生裁决，已由公开 WebUI/API、GHCR、GitHub `main` CI、Docker 分发和 cold-wake/recovery 观察证据完成；NJU Git 是可接受的代码托管替代项，无需第二个镜像或 pipeline。
-- [ ] P11：由学生完成 `REFLECTION.md`，执行最终证据分支审查/PR/CI/合并、打包及最终公网复核后提交。依赖 P3–P10。
+- [ ] P11：`REFLECTION.md` 已完成并通过独立复审；仍须完成最终证据分支 PR/CI/merge、打包候选检查和最终公网复核。依赖 P3–P10。
 
 ## 本阶段验证证据
 
@@ -51,4 +51,10 @@ PR #28 merged to `main` as `ba8ef6f`; main CI run `31471843621` passed and publi
 
 据此，P10 已完成：公开 WebUI、API health 与 `/activities` 深链、两个公开 GHCR 页面均为 HTTP 200；`main` 的 GitHub CI 已通过，公开 Docker 镜像和链接已存在，并已有 cold-wake/recovery 观察。学生明确将脱敏演示活动、活动依赖 smoke、临时 Atlas 个人 IP 清理，以及 Ant Design Dropdown/Select 弹层问题列为提交后的维护事项，而非 P10 阻塞项；若清理个人 IP，仍须保留两个 Render CIDR 且不得使用 `0.0.0.0/0`。
 
-`E:\project\AI4se\submission.jsonc` 已由学生在仓库外填充，包含学生身份、公开 GitHub 仓库 URL、`is_deployed: true` 和公开 WebUI URL；该文件保持在源仓库外，本文档不复制学生身份。P11 仍未完成，仅剩学生本人撰写的 1500--2500 字中文 `REFLECTION.md`、最终证据分支 review/PR/CI/merge、打包和最终公网复核；不得据此宣称整体作业完成。
+`E:\project\AI4se\submission.jsonc` 已由学生在仓库外填充，包含学生身份、公开 GitHub 仓库 URL、`is_deployed: true` 和公开 WebUI URL；该文件保持在源仓库外，本文档不复制学生身份。`REFLECTION.md` 已在 `75878ad` 完成：1849 个 CJK 字符，九项实质观点均经学生确认，AI 仅协助结构与语言润色，并由独立 `reflection_review` 给出 PASS。P11 仍未完成，仅剩最终证据分支 PR/CI/merge、打包候选检查和最终公网复核；不得据此宣称整体作业完成。
+
+## Final evidence branch status
+
+证据预写由 `5b8cfea`、`5d3c546` 及其 review/fix 完成；教师澄清由 `da5bc1a`、`f9fe884` 记录并获 scoped APPROVE；反思由 `75878ad` 提交并获独立 PASS。最终门禁证据为：`npm run verify` 退出 0（deployment 3、backend 53、frontend 43，lint/type-check/build 通过）、两个 Docker build 退出 0、credential scan 0 findings、WebUI/API/深链/两个 GHCR 页面共五个 URL 均 HTTP 200，且仓库外 `submission.jsonc` 有效。
+
+`final_submission_review` 的实际结论为 **Not Ready for PR**，0 Critical / 2 Important / 1 Minor；本提交仅处理该审查的全部文档发现，对应 scoped re-review 尚未发生，也不预称通过。P11 继续等待 PR/CI/merge、打包候选检查和最终公网复核。

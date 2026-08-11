@@ -137,6 +137,7 @@ UniMove/
 - [实施计划](PLAN.md)
 - [Agent 协作日志](AGENT_LOG.md)
 - [SPEC 与 PLAN 形成过程](SPEC_PROCESS.md)
+- [课程项目反思](REFLECTION.md)
 - [贡献指南](CONTRIBUTING.md)
 
 ## 第三方技术与许可证

@@ -72,4 +72,11 @@ The student manually entered secrets and performed account and Atlas dashboard a
 - 人类裁决：P10 以已有公开 WebUI/API health/`/activities` 深链/GHCR HTTP 200、通过的 GitHub `main` CI、公开 Docker 镜像与链接、以及 cold-wake/recovery 观察为准完成。此裁决不否认早期书面计划曾列出 NJU GitLab 与运行检查；它只修订本次提交的当前门禁。
 - 提交后维护（非 P10 阻塞）：创建脱敏演示活动并运行活动依赖 smoke；调查/修复 Ant Design Dropdown/Select 弹层问题；可选删除临时 Atlas 个人 IP，同时保留两个 Render CIDR 且不使用 `0.0.0.0/0`。
 - `E:\project\AI4se\submission.jsonc` 已在源仓库外由学生填写学生身份、公开 GitHub 仓库 URL、`is_deployed: true` 和公开 WebUI URL；Agent 未复制其身份数据或 JSONC 到仓库。
-- P11 与整体作业仍未完成。P11 仅待学生本人 1500--2500 字中文 `REFLECTION.md`、最终证据分支 review/PR/CI/merge、打包和最终公网复核。
+- `REFLECTION.md` 已在 `75878ad` 完成：1849 个 CJK 字符；九项实质观点均经学生确认，AI 仅协助结构和语言润色；独立 `reflection_review` 结论为 PASS。P11 与整体作业仍未完成，仅待最终证据分支 PR/CI/merge、打包候选检查和最终公网复核。
+
+## 2026-08-11 / Final evidence branch review and fix
+
+- Prewrite：`5b8cfea`、`5d3c546`，经历 review/fix 后完成；教师澄清：`da5bc1a`、`f9fe884`，后续 scoped review 结论为 APPROVE。Reflection：`75878ad`，1849 CJK，学生确认九项实质观点，AI 仅作结构/语言润色，独立 `reflection_review` 为 PASS。
+- 最新 final gates：`npm run verify` exit 0（deployment 3/3、backend 53/53、frontend 43/43，lint/type-check/build 通过）；两个 Docker build exit 0；credential scan 0 findings；WebUI、API、`/activities` 深链及两个 GHCR 页面共五个 URL 均 HTTP 200；仓库外 `submission.jsonc` 已验证为 valid。
+- `final_submission_review` 实际结论：**Not Ready for PR**，0 Critical / 2 Important / 1 Minor。本提交是对这些 findings 的唯一 fix wave；对应 scoped re-review 尚未发生，不记录为通过。
+- P10 保持完成。脱敏活动/活动依赖 smoke、Dropdown/Select 弹层问题和可选 Atlas 临时个人 IP 清理仍为提交后维护。P11 保持未完成，仅待最终证据分支 PR/CI/merge、打包候选检查和最终公网复核。
