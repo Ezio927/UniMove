@@ -1,7 +1,7 @@
 import React from 'react';
 import { Layout, Menu, Avatar, Dropdown, Button, Space } from 'antd';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { UserOutlined, LogoutOutlined, PlusOutlined } from '@ant-design/icons';
+import { UserOutlined, LogoutOutlined, PlusOutlined, DownOutlined } from '@ant-design/icons';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { logout } from '../store/authSlice';
 import './AppLayout.css';
@@ -80,8 +80,8 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
               <Button icon={<PlusOutlined />} onClick={() => navigate('/activities/create')}>创建活动</Button>
             )}
             {isAuthenticated ? (
-              <Dropdown menu={userMenu} placement="bottomRight">
-                <Button type="text" className="user-button">
+              <Dropdown menu={userMenu} placement="bottomRight" trigger={['click']}>
+                <Button type="text" className="user-button" aria-label="打开用户菜单" aria-haspopup="menu">
                   <Space>
                     <Avatar
                       size="small"
@@ -89,6 +89,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
                       icon={!user?.avatar && <UserOutlined />}
                     />
                     <span className="username">{user?.username}</span>
+                    <DownOutlined className="user-menu-indicator" aria-hidden="true" />
                   </Space>
                 </Button>
               </Dropdown>
