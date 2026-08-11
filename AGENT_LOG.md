@@ -52,3 +52,11 @@
 - 本轮终审集中修复没有额外人工干预或范围变更。
 - P10（线上部署）和 P11（学生反思与最终提交）仍 pending；没有相应的部署或反思完成声明。
 - Task 4 定向审查、`final_infra_review` whole-branch 终审及其 scoped re-review 均已发生；最新结论为 APPROVE / Ready to merge: Yes。`superpowers:finishing-a-development-branch` 仍 pending，尚未执行集成选择。
+
+## 2026-08-11 / P10：Render、Atlas 与 GHCR 配置门禁
+
+- `render_contract_impl`（`gpt-5.6-terra` / medium）按 Task1 TDD 实现 Render 合约，提交 `bc0f12e`；`render_contract_review`（`gpt-5.6-terra` / high）完成 spec+quality review，approved，0 findings。Task1 RED 命令为 `node --test scripts/deployment-contract.test.mjs`，GREEN 为 `npm run test:deployment` 与 `npm test`。
+- `ghcr_publish_impl`（`gpt-5.6-terra` / medium）按 Task2 TDD 实现 GHCR 发布，提交 `7c78736`；`ghcr_publish_review`（`gpt-5.6-terra` / high）approved，0 findings。Task2 RED/GREEN 命令均为 `npm run test:deployment`（RED exit 1、GREEN exit 0）。
+- `config_gate_impl`（`gpt-5.6-terra` / medium）完成 pre-PR verification；whole review 后修复提交为 `d2a51b7`、`a2be771`，round2 提交为 `2ba4e68`。实际门禁：`npm run verify`、两份使用进程本地 dummy 值且抑制输出的 Compose config、`git diff --check` 均退出 0；161 tracked files credential scan 为 0 findings。
+- `render_config_whole_review`（`gpt-5.6-sol` / high）报告 3 Important（`needs` 门禁、部署合约不足、SHA tag 前缀）与 2 Minor（README `npm test` 描述、计划顺序）。`render_config_fix_rereview`（`gpt-5.6-terra` / high）round1 为 4 addressed/1 open（login step 条件未精确绑定）；round2 为 all addressed/no new breakage。
+- 实际人类批准：Render+Atlas+GHCR 设计获批准、设计评审通过，并选择/确认 subagent-driven 方案；未批准尚未创建的 PR 或 merge。P10 及外部 gates 仍 pending：配置 PR/merge、`main` 首次 GHCR 发布与 Public、Atlas/Render、真实 URL、NJU GitLab 和学生 `REFLECTION.md`。`superpowers:finishing-a-development-branch` 尚未运行。
