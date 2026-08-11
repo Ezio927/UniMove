@@ -26,13 +26,19 @@ test('GitHub CI publishes both images only after quality gates with scoped packa
   assert.notEqual(start, -1, 'docker-build job is required');
   assert.notEqual(end, -1, 'docker-build block must end before dependency-review');
   const dockerBuild = workflow.slice(start, end);
+  const loginStart = dockerBuild.indexOf('      - name: Log in to GHCR');
+  const loginEnd = dockerBuild.indexOf('\n      - name: Extract image metadata', loginStart);
+  assert.notEqual(loginStart, -1, 'GHCR login step is required');
+  assert.notEqual(loginEnd, -1, 'GHCR login step must precede metadata extraction');
+  const loginStep = dockerBuild.slice(loginStart, loginEnd);
 
   assert.match(workflow, /^permissions:\r?\n  contents: read\r?$/m);
   assert.match(dockerBuild, /^    needs: \[frontend, backend\]$/m);
   assert.match(dockerBuild, /^    permissions:\r?\n      contents: read\r?\n      packages: write\r?$/m);
   assert.match(dockerBuild, /component: \[backend, frontend\]/);
   assert.match(dockerBuild, /ghcr\.io\/ezio927\/unimove-\$\{\{ matrix\.component \}\}/);
-  assert.match(dockerBuild, /if: github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'/);
+  assert.match(loginStep, /^        uses: docker\/login-action@v3$/m);
+  assert.match(loginStep, /^        if: github\.event_name == 'push' && github\.ref == 'refs\/heads\/main'$/m);
   assert.match(dockerBuild, /push: \$\{\{ github\.event_name == 'push' && github\.ref == 'refs\/heads\/main' \}\}/);
   assert.match(dockerBuild, /type=sha,format=long,prefix=/);
   assert.match(dockerBuild, /type=raw,value=latest,enable=\{\{is_default_branch\}\}/);

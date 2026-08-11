@@ -41,3 +41,11 @@ RED command: `npm run test:deployment` exited `1`; the new third contract test f
 GREEN command: `npm run test:deployment` exited `0`; all 3 deployment-contract tests passed.  Static YAML parse/assertions (job names/permissions/matrix/metadata tag) exited `0`, and `git diff --check` exited `0`.  An initial static-check wrapper incorrectly selected the metadata step by array index and exited `1`; it did not modify configuration and was rerun by stable `id: meta` lookup to the successful result above.
 
 Changed files: `.github/workflows/ci.yml`, `scripts/deployment-contract.test.mjs`, `README.md`, `PLAN.md`, and this report.  Commit: `d2a51b7` (`fix: gate GHCR publication`); no push occurred.  This entry records the supplied whole-branch findings and their fixes only; scoped re-review remains pending.
+
+## Fix round 2: scoped re-review login-step coverage (2026-08-11)
+
+Only `scripts/deployment-contract.test.mjs` changes production-facing coverage in this round: it slices the named `Log in to GHCR` step from the `docker-build` block, then asserts that this exact step uses `docker/login-action@v3` and carries the main-push condition.
+
+Coverage-gap mutation: the login condition was temporarily moved to the metadata step.  With the old whole-job assertion, `npm run test:deployment` exited `0` (3/3), proving it could accept the condition on the wrong step.  With the new exact-step assertion and the same mutation, `npm run test:deployment` exited `1` at the expected missing condition in the login-step slice (2/3 passed, 1/3 failed).  The temporary workflow mutation was then restored before GREEN and is not part of the final diff.
+
+GREEN: `npm run test:deployment` exited `0` (3/3 passed); `git diff --check` exited `0`.  Files to commit: `scripts/deployment-contract.test.mjs` and this report.  No push occurred; round-2 scoped re-review remains pending and is not claimed here.
