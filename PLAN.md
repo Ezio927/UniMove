@@ -21,8 +21,8 @@ UniMove 的认证、活动、订单、评论、前端界面和既有 Docker 配�
 - [x] P7：完成规约、质量与安全复审；修复跨层 organizer 契约及状态时序问题（`ecd48d6`、`b804e693be893fb269068afb45d6baf8d3416e7a`、`e35143c`）。
 - [x] P8：提供根目录一键质量门禁和 GitLab `unit-test`/质量 CI（`e4c4f84fce0a1d44933c29b25bfd7d950d7e9025`、`6686bb6e5ace9b482f210a1177db77460eb09237`）；本阶段最终 `npm run verify` 已通过。
 - [x] P9：完成可复核 Docker 分发、安全边界、README 与提交文档（既有提交 `72ac455`、`826f518`、`03b1efb`、`71cb693`、`e0f4868`；终审集中修复 `a13e3b7`、`895f7bb`；证据 `90b0eab`）。`final_infra_review`（`gpt-5.6-sol` / max）对 `ac6d52c..90b0eab` 完成 scoped re-review，结论为 **APPROVE / Ready to merge: Yes**：4 项 Important 与 1 项 Minor 全部 ADDRESSED，无新 Critical/Important；定向复跑 2 个测试文件/7 项测试全部通过。
-- [ ] P10：配置 PR/merge 后准备可访问的线上 WebUI。依赖 P9，仍需部署平台账号与授权、`main` 首次 GHCR 发布及 Public、Atlas/Render 和真实 URL 验证、NJU GitLab 成功；不含学生 `REFLECTION.md`。
-- [ ] P11：由学生完成 `REFLECTION.md`，执行最终验证并提交。依赖 P3–P10。
+- [x] P10：配置 PR/merge 后准备可访问的线上 WebUI。依赖 P9；原书面计划阶段曾将 NJU GitLab 与若干运行检查列为门禁。根据 2026-08-11 教师说明和学生裁决，已由公开 WebUI/API、GHCR、GitHub `main` CI、Docker 分发和 cold-wake/recovery 观察证据完成；NJU Git 是可接受的代码托管替代项，无需第二个镜像或 pipeline。
+- [ ] P11：`REFLECTION.md` 已完成并通过独立复审；仍须完成最终证据分支 PR/CI/merge、打包候选检查和最终公网复核。依赖 P3–P10。
 
 ## 本阶段验证证据
 
@@ -39,3 +39,22 @@ Task 3 使用仅进程本地的伪值验证了核心和 tools Compose 渲染、�
 收藏行为变更按 RED → GREEN → 重构记录；实施使用独立 worktree、实现/审查 Agent 分离，且在完成声明前运行验证。提交基础设施阶段使用 root 命令、CI、Docker 与文档审查；不宣称完整历史基线均为 TDD。
 
 核心 Docker 栈不发布 backend 或 MongoDB 端口；frontend 仅绑定回环地址。凭据由 shell 环境传入，`MONGO_ROOT_PASSWORD_URI` 是原始 Mongo 密码的 URI 百分号编码值，该等价关系由变量设置者保证而非 `docker compose config` 验证。Scoped re-review 批准时保留 3 项已披露、non-load-bearing residual：健康检查使用 `readyState` 而非主动 ping；本地 Compose 为简化使用 root、生产必须使用外部最小权限应用用户；旧卷用户与 seed admin 仍需操作者人工审计、轮换或删除。Mongo Express 是显式启用的可选工具，亦仅绑定回环地址。`superpowers:finishing-a-development-branch` 尚未执行。
+## 2026-08-11 Deployment evidence update（历史记录）
+
+PR #28 merged to `main` as `ba8ef6f`; main CI run `31471843621` passed and published public GHCR images. PR #30 merged to `main` as `6f6160c`; main CI run `31481673894` passed. Verified evidence includes the public WebUI, API health, both public GHCR pages, partial Atlas/Render configuration, and sanitized ordinary-account registration, login, profile, and empty-favorites smoke. A fresh local `npm run verify` on `6f6160c` passed on 2026-08-11: deployment 3/3, backend 53/53, frontend 43/43, lint/type-check/build passed.
+
+该段保留的是教师澄清前的历史门禁，不再代表当前提交状态。
+
+## 2026-08-11 Teacher submission clarification
+
+教师说明确认：完整源代码仓库（含所需文档）压缩后提交至 `selearning`，`submission.jsonc` 与源代码压缩包并列提交、不得改名且不放入压缩包。GitHub 只是模板示例，NJU Git 亦可；现有公开 GitHub 仓库是本次提交可接受的代码仓库目标，因此不要求第二个 NJU GitLab 镜像或 pipeline。对于已部署应用，`deploy_release_url` 使用公开 WebUI 链接。
+
+据此，P10 已完成：公开 WebUI、API health 与 `/activities` 深链、两个公开 GHCR 页面均为 HTTP 200；`main` 的 GitHub CI 已通过，公开 Docker 镜像和链接已存在，并已有 cold-wake/recovery 观察。学生明确将脱敏演示活动、活动依赖 smoke、临时 Atlas 个人 IP 清理，以及 Ant Design Dropdown/Select 弹层问题列为提交后的维护事项，而非 P10 阻塞项；若清理个人 IP，仍须保留两个 Render CIDR 且不得使用 `0.0.0.0/0`。
+
+`E:\project\AI4se\submission.jsonc` 已由学生在仓库外填充，包含学生身份、公开 GitHub 仓库 URL、`is_deployed: true` 和公开 WebUI URL；该文件保持在源仓库外，本文档不复制学生身份。`REFLECTION.md` 已在 `75878ad` 完成：1849 个 CJK 字符，九项实质观点均经学生确认，AI 仅协助结构与语言润色，并由独立 `reflection_review` 给出 PASS。P11 仍未完成，仅剩最终证据分支 PR/CI/merge、打包候选检查和最终公网复核；不得据此宣称整体作业完成。
+
+## Final evidence branch status
+
+证据预写由 `5b8cfea`、`5d3c546` 及其 review/fix 完成；教师澄清由 `da5bc1a`、`f9fe884` 记录并获 scoped APPROVE；反思由 `75878ad` 提交并获独立 PASS。最终门禁证据为：`npm run verify` 退出 0（deployment 3、backend 53、frontend 43，lint/type-check/build 通过）、两个 Docker build 退出 0、credential scan 0 findings、WebUI/API/深链/两个 GHCR 页面共五个 URL 均 HTTP 200，且仓库外 `submission.jsonc` 有效。
+
+`final_submission_review` 的实际结论为 **Not Ready for PR**，0 Critical / 2 Important / 1 Minor；本提交仅处理该审查的全部文档发现，对应 scoped re-review 尚未发生，也不预称通过。P11 继续等待 PR/CI/merge、打包候选检查和最终公网复核。

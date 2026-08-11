@@ -51,14 +51,35 @@ UniMove 是学生已有项目。2026-08-10 起，课程工作以该项目为 B �
 
 `final_infra_review`（`gpt-5.6-sol` / max）随后对 `ac6d52c..90b0eab` 完成 scoped re-review，并定向复跑 `index.test.ts` 与 `importData.test.ts`：2 files/7 tests 全部通过。最终结论为 **APPROVE / Ready to merge: Yes**；原 4 项 Important 与 1 项 Minor 全部 ADDRESSED，无新 Critical/Important。本轮仍披露但不承载批准结论的 3 项 residual 是：健康检查依赖 `readyState` 而非主动 ping；本地 Compose 使用 root、生产需外部最小权限用户；旧卷 legacy user 与 seed admin 需操作者人工审计、轮换或删除。`superpowers:finishing-a-development-branch` 仍 pending。
 
-## 当前限制和后续
+## 历史“当前限制和后续”（已由后续教师澄清取代）
 
 `/api/health` 依据 Mongoose 连接状态而不发起额外数据库读，但任何非 connected 状态均返回 503/`success: false`。Core Compose 为本地简化使用 root 账户；生产必须提供外部最小权限应用用户。旧卷和 seed admin 的处置保持显式人工操作，不自动删除数据或账户。核心发布仅绑定回环；线上暴露必须由学生在有授权的部署平台中完成 TLS、密钥管理和网络策略。P10 部署和 P11 学生反思仍 pending；`superpowers:finishing-a-development-branch` 尚未执行。
 
-## P10：配置 PR 与 `main` 发布门禁的实际证据
+## P10：配置 PR 与 `main` 发布门禁的实际证据（历史记录，已取代）
 
 `render_contract_impl`（`gpt-5.6-terra` / medium）按 Task1 TDD 在 `bc0f12e` 实现 Render 合约；`render_contract_review`（`gpt-5.6-terra` / high）完成 spec+quality review，approved、0 findings。Task1 RED 使用 `node --test scripts/deployment-contract.test.mjs`，GREEN 使用 `npm run test:deployment` 和 `npm test`。`ghcr_publish_impl`（`gpt-5.6-terra` / medium）按 Task2 TDD 在 `7c78736` 实现 GHCR 发布；`ghcr_publish_review`（`gpt-5.6-terra` / high）approved、0 findings，RED/GREEN 均为 `npm run test:deployment`（分别 exit 1/0）。
 
 `config_gate_impl`（`gpt-5.6-terra` / medium）执行 pre-PR verification：`npm run verify`、两份带进程本地 dummy 值且不输出渲染结果的 Compose config、`git diff --check` 均 exit 0；161 tracked files credential scan 为 0 findings。`render_config_whole_review`（`gpt-5.6-sol` / high）报告 3 Important（Docker `needs` 门禁、GHCR 契约不足、SHA prefix）和 2 Minor（README 测试说明、计划证据顺序）；修复提交为 `d2a51b7`、`a2be771`。`render_config_fix_rereview`（`gpt-5.6-terra` / high）round1 记录 4 addressed/1 open（login step 条件未精确绑定），round2 结论为 all addressed/no new breakage；round2 修复提交 `2ba4e68`。
 
 人类实际批准为 Render+Atlas+GHCR 设计、设计评审和 subagent-driven 方案；尚未批准配置 PR 或 merge。P10 外部 gates 继续 pending：配置 PR/merge、`main` 首次 GHCR 发布和 Public、Atlas/Render、真实 URL、NJU GitLab 与学生 `REFLECTION.md`。`superpowers:finishing-a-development-branch` 未运行。
+## 2026-08-11 Verified deployment evidence correction
+
+Earlier statements that PR/merge, public GHCR, Render/Atlas, and live URLs were wholly pending are obsolete. PR #28 merged as `ba8ef6f`; main CI run `31471843621` passed and published public images. PR #30 merged as `6f6160c`; main CI run `31481673894` passed. Verified live evidence is API health 200/`success=true`/`database.status=connected`, previously verified exact production CORS, WebUI root and `/activities` deep link 200, two public GHCR pages 200, and sanitized ordinary-account registration/login/profile/empty-favorites smoke.
+
+The student manually entered secrets and performed account and Atlas dashboard actions; Agents neither received nor persisted secret values. Atlas `unimove_app` has read/write access scoped to `unimove`; two Render outbound CIDRs are allowlisted and there is no permanent `0.0.0.0/0`. The Render free-tier cold-start limitation is documented, but cold-wake/health-recovery is not claimed passed. The deployed logout dropdown remains under investigation and is not recorded as fixed by PR #30.
+
+该段为澄清前的历史状态，现由下列教师说明和人类裁决取代。
+
+## 2026-08-11 Teacher submission clarification
+
+教师说明确认源代码仓库（包括要求文档）应压缩提交至 `selearning`，而 `submission.jsonc` 保持原名、与压缩包并列且位于源仓库外。模板中的 GitHub 仅为示例，NJU Git 也可；故现有公开 GitHub 仓库是本次提交可接受的仓库目标，无需额外 NJU GitLab 镜像或通过的 pipeline。已部署应用的 `deploy_release_url` 取公开 WebUI。
+
+据此人类裁决，P10 完成的证据是公开 WebUI、API health 和 `/activities` 深链、两个公开 GHCR 页面均 HTTP 200，`main` GitHub CI 通过，公开 Docker 镜像/链接存在，并已观察到 cold-wake/recovery。早期书面计划确曾把 NJU GitLab 与若干运维检查列为门禁；本次裁决只替换当前提交门禁，并不否认该历史要求。
+
+脱敏演示活动与活动依赖 smoke、Ant Design Dropdown/Select 弹层缺陷的调查/修复，以及可选移除临时 Atlas 个人 IP（保留两个 Render CIDR、无 `0.0.0.0/0`）均改列为提交后维护，非 P10 阻塞。`E:\project\AI4se\submission.jsonc` 已在仓库外填入学生身份、公开 GitHub 仓库 URL、`is_deployed: true` 和公开 WebUI URL，过程文档不复制身份或 JSONC。`REFLECTION.md` 已在 `75878ad` 完成（1849 CJK；九项学生确认观点；AI 仅作结构/语言润色），且独立 `reflection_review` 为 PASS。P11 仍仅待最终证据分支 PR/CI/merge、打包候选检查和最终公网复核；整体作业未完成。
+
+## Final evidence branch process and current verdict
+
+Prewrite 提交 `5b8cfea`、`5d3c546` 经 review/fix 完成；教师澄清提交 `da5bc1a`、`f9fe884` 经 scoped review 获 APPROVE；反思提交 `75878ad` 经独立复审获 PASS。最新门禁记录为：`npm run verify` exit 0（deployment 3/3、backend 53/53、frontend 43/43，lint/type-check/build 通过），两个 Docker build exit 0，credential scan 0 findings，WebUI/API/`/activities` 深链/两个 GHCR 页面共五个 URL HTTP 200，仓库外 `submission.jsonc` valid。
+
+随后 `final_submission_review` 给出 **Not Ready for PR**（0 Critical / 2 Important / 1 Minor）。本提交是该审查 findings 的唯一 fix wave；对应 scoped re-review 尚未发生，因而不得记录为通过。P10 保持完成；提交后维护分类不变；P11 继续等待 PR/CI/merge、打包候选检查和最终公网复核。
