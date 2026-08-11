@@ -18,3 +18,11 @@ test('Render blueprint declares the public frontend and API without committed se
 test('backend container healthcheck honors the platform PORT', () => {
   assert.match(read('backend/Dockerfile'), /process\.env\.PORT\s*\|\|\s*3001/);
 });
+
+test('GitHub CI publishes both images with least package permission', () => {
+  const workflow = read('.github/workflows/ci.yml');
+  assert.match(workflow, /packages: write/);
+  assert.match(workflow, /ghcr\.io\/ezio927\/unimove-/);
+  assert.match(workflow, /docker\/login-action@v3/);
+  assert.match(workflow, /push: \$\{\{ github\.event_name == 'push' && github\.ref == 'refs\/heads\/main' \}\}/);
+});

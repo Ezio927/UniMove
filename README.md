@@ -52,6 +52,17 @@ Remove-Item Env:SEED_ADMIN_PASSWORD
 
 公开部署前必须删除该演示 admin，或通过受控流程重置其密码，并审计示例活动是否应保留。再次运行 importer 不会自动轮换已存在 admin 的密码。
 
+## GHCR image distribution
+
+After the first successful `main` publish, change each package's visibility to **Public** in GitHub Packages. Images are available as `ghcr.io/ezio927/unimove-frontend` and `ghcr.io/ezio927/unimove-backend`; anonymous users can pull them with:
+
+```bash
+docker pull ghcr.io/ezio927/unimove-frontend:latest
+docker pull ghcr.io/ezio927/unimove-backend:latest
+```
+
+For deployments, prefer the immutable commit-SHA tag over `latest`, for example `ghcr.io/ezio927/unimove-frontend:<commit-sha>`.
+
 ## Docker 分发
 
 核心 Compose 栈仅包含 MongoDB、backend 和 frontend。它不发布 MongoDB 或 backend 的宿主机端口；浏览器只经由前端反向代理访问 `/api`。前端仅绑定回环地址 `127.0.0.1:80`，因此默认只可由运行 Docker 的主机访问。浏览器可使用 `http://127.0.0.1` 或 `http://localhost`；backend 的 Compose CORS allowlist 同时允许这两个精确 Origin，但端口仍只绑定于本机回环接口。
