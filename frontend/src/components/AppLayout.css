@@ -7,6 +7,7 @@
 .app-header-actions { display: flex; align-items: center; gap: 12px; }
 .user-button { height: 40px; padding: 4px 10px; color: #344054; }
 .username { max-width: 100px; overflow: hidden; text-overflow: ellipsis; }
+.user-menu-indicator { color: #98a2b3; font-size: 11px; }
 .app-content { min-height: calc(100vh - 134px); background: #f6f8fb; }
 .app-content-wrapper { max-width: 1180px; margin: 0 auto; padding: 32px 24px 56px; }
 .app-footer { padding: 22px 16px; color: #667085; text-align: center; background: #fff; border-top: 1px solid #eaecf0; }
