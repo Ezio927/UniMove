@@ -51,11 +51,11 @@ UniMove 是学生已有项目。2026-08-10 起，课程工作以该项目为 B �
 
 `final_infra_review`（`gpt-5.6-sol` / max）随后对 `ac6d52c..90b0eab` 完成 scoped re-review，并定向复跑 `index.test.ts` 与 `importData.test.ts`：2 files/7 tests 全部通过。最终结论为 **APPROVE / Ready to merge: Yes**；原 4 项 Important 与 1 项 Minor 全部 ADDRESSED，无新 Critical/Important。本轮仍披露但不承载批准结论的 3 项 residual 是：健康检查依赖 `readyState` 而非主动 ping；本地 Compose 使用 root、生产需外部最小权限用户；旧卷 legacy user 与 seed admin 需操作者人工审计、轮换或删除。`superpowers:finishing-a-development-branch` 仍 pending。
 
-## 当前限制和后续
+## 历史“当前限制和后续”（已由后续教师澄清取代）
 
 `/api/health` 依据 Mongoose 连接状态而不发起额外数据库读，但任何非 connected 状态均返回 503/`success: false`。Core Compose 为本地简化使用 root 账户；生产必须提供外部最小权限应用用户。旧卷和 seed admin 的处置保持显式人工操作，不自动删除数据或账户。核心发布仅绑定回环；线上暴露必须由学生在有授权的部署平台中完成 TLS、密钥管理和网络策略。P10 部署和 P11 学生反思仍 pending；`superpowers:finishing-a-development-branch` 尚未执行。
 
-## P10：配置 PR 与 `main` 发布门禁的实际证据
+## P10：配置 PR 与 `main` 发布门禁的实际证据（历史记录，已取代）
 
 `render_contract_impl`（`gpt-5.6-terra` / medium）按 Task1 TDD 在 `bc0f12e` 实现 Render 合约；`render_contract_review`（`gpt-5.6-terra` / high）完成 spec+quality review，approved、0 findings。Task1 RED 使用 `node --test scripts/deployment-contract.test.mjs`，GREEN 使用 `npm run test:deployment` 和 `npm test`。`ghcr_publish_impl`（`gpt-5.6-terra` / medium）按 Task2 TDD 在 `7c78736` 实现 GHCR 发布；`ghcr_publish_review`（`gpt-5.6-terra` / high）approved、0 findings，RED/GREEN 均为 `npm run test:deployment`（分别 exit 1/0）。
 

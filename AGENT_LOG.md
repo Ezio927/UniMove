@@ -45,7 +45,7 @@
 - Scoped re-review Agent：`final_infra_review`（`gpt-5.6-sol` / max）。上下文：只读复审 `ac6d52c..90b0eab` 的集中修复、证据和范围，并定向复跑 health/seed 两个测试文件。实际结果为 2 files/7 tests 全部通过；结论为 **APPROVE / Ready to merge: Yes**，原 4 项 Important 与 1 项 Minor 全部 ADDRESSED，无新 Critical/Important。
 - Reviewer 同时披露 3 项非阻塞、non-load-bearing residual：健康端点依赖 Mongoose `readyState` 而非主动 ping；本地 Compose 为简化继续使用 root，生产须改用外部最小权限用户；旧卷中的 legacy user 与本地 seed admin 仍需操作者按文档人工审计、轮换或删除。这些披露不改变批准结论。
 
-## 人工决策与待办
+## 历史人工决策与待办（已由后续教师澄清取代）
 
 - 学生选择保存可核验的 prompt/context 摘要，不提交冗长逐字 session prompt。
 - 学生未授权自动删除任何预先存在的 Docker 容器、卷或网络；验证清理仅限临时 Compose 项目且未使用 `-v`。
@@ -53,7 +53,7 @@
 - P10（线上部署）和 P11（学生反思与最终提交）仍 pending；没有相应的部署或反思完成声明。
 - Task 4 定向审查、`final_infra_review` whole-branch 终审及其 scoped re-review 均已发生；最新结论为 APPROVE / Ready to merge: Yes。`superpowers:finishing-a-development-branch` 仍 pending，尚未执行集成选择。
 
-## 2026-08-11 / P10：Render、Atlas 与 GHCR 配置门禁
+## 2026-08-11 / P10：Render、Atlas 与 GHCR 配置门禁（历史记录，已取代）
 
 - `render_contract_impl`（`gpt-5.6-terra` / medium）按 Task1 TDD 实现 Render 合约，提交 `bc0f12e`；`render_contract_review`（`gpt-5.6-terra` / high）完成 spec+quality review，approved，0 findings。Task1 RED 命令为 `node --test scripts/deployment-contract.test.mjs`，GREEN 为 `npm run test:deployment` 与 `npm test`。
 - `ghcr_publish_impl`（`gpt-5.6-terra` / medium）按 Task2 TDD 实现 GHCR 发布，提交 `7c78736`；`ghcr_publish_review`（`gpt-5.6-terra` / high）approved，0 findings。Task2 RED/GREEN 命令均为 `npm run test:deployment`（RED exit 1、GREEN exit 0）。

@@ -75,7 +75,7 @@ flowchart LR
 
 CI/CD: pull requests and `main` run the quality checks. A successful push to `main` publishes both GHCR images; this occurred for PR #28 merged as `ba8ef6f` (main CI run `31471843621`). Render services use `checksPass` and auto-deploy only after checks pass. PR #30 merged to `main` as `6f6160c`; main CI run `31481673894` passed. The student manually entered deployment secrets and performed account and Atlas dashboard actions. Secret values remain only in the Atlas and Render dashboards; Agents neither received nor persisted them. Atlas uses the `unimove_app` read/write application user scoped to the `unimove` database, and two Render outbound CIDRs are allowlisted without a permanent `0.0.0.0/0` rule.
 
-Render's free tier can cold-start after inactivity. This limitation is documented, but the backend cold-wake and health-recovery observation is still pending. The deployed logout dropdown remains a known post-deployment defect under investigation; it is not claimed fixed by PR #30.
+On 2026-08-11, a sanitized public API-health observation showed a delayed free-tier wake followed by healthy recovery: the initial request took about 13.9 s and returned HTTP 200 with `success=true` and `database=connected`; three immediate follow-ups took about 0.54 s, 0.36 s, and 0.23 s and returned the same healthy state. This is an observation, not proof of Render internals. The deployed logout dropdown remains a known post-deployment defect under investigation; it is not claimed fixed by PR #30.
 
 ## Docker 分发
 
