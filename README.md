@@ -57,7 +57,7 @@ Remove-Item Env:SEED_ADMIN_PASSWORD
 Public WebUI: https://unimove-ezio927-web.onrender.com
 API health: https://unimove-ezio927-api.onrender.com/api/health
 
-The public GHCR package pages are [frontend](https://ghcr.io/ezio927/unimove-frontend) and [backend](https://ghcr.io/ezio927/unimove-backend). Anonymous users can pull the public images with:
+The public GHCR package pages are [frontend](https://github.com/Ezio927/UniMove/pkgs/container/unimove-frontend) and [backend](https://github.com/Ezio927/UniMove/pkgs/container/unimove-backend). The `ghcr.io/ezio927/unimove-frontend` and `ghcr.io/ezio927/unimove-backend` names are OCI image identifiers; anonymous users can pull the public images with:
 
 ```bash
 docker pull ghcr.io/ezio927/unimove-frontend:latest
@@ -73,7 +73,7 @@ flowchart LR
   API --> Atlas[MongoDB Atlas]
 ```
 
-CI/CD: PR #28 merged to `main` as `ba8ef6f`; main CI run `31471843621` passed and published the public images. PR #30 merged to `main` as `6f6160c`; main CI run `31481673894` passed. The student manually entered deployment secrets and performed account and Atlas dashboard actions. Secret values remain only in the Atlas and Render dashboards; Agents neither received nor persisted them. Atlas uses the `unimove_app` read/write application user scoped to the `unimove` database, and two Render outbound CIDRs are allowlisted without a permanent `0.0.0.0/0` rule.
+CI/CD: pull requests and `main` run the quality checks. A successful push to `main` publishes both GHCR images; this occurred for PR #28 merged as `ba8ef6f` (main CI run `31471843621`). Render services use `checksPass` and auto-deploy only after checks pass. PR #30 merged to `main` as `6f6160c`; main CI run `31481673894` passed. The student manually entered deployment secrets and performed account and Atlas dashboard actions. Secret values remain only in the Atlas and Render dashboards; Agents neither received nor persisted them. Atlas uses the `unimove_app` read/write application user scoped to the `unimove` database, and two Render outbound CIDRs are allowlisted without a permanent `0.0.0.0/0` rule.
 
 Render's free tier can cold-start after inactivity. This limitation is documented, but the backend cold-wake and health-recovery observation is still pending. The deployed logout dropdown remains a known post-deployment defect under investigation; it is not claimed fixed by PR #30.
 

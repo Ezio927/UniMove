@@ -21,7 +21,7 @@ UniMove 的认证、活动、订单、评论、前端界面和既有 Docker 配�
 - [x] P7：完成规约、质量与安全复审；修复跨层 organizer 契约及状态时序问题（`ecd48d6`、`b804e693be893fb269068afb45d6baf8d3416e7a`、`e35143c`）。
 - [x] P8：提供根目录一键质量门禁和 GitLab `unit-test`/质量 CI（`e4c4f84fce0a1d44933c29b25bfd7d950d7e9025`、`6686bb6e5ace9b482f210a1177db77460eb09237`）；本阶段最终 `npm run verify` 已通过。
 - [x] P9：完成可复核 Docker 分发、安全边界、README 与提交文档（既有提交 `72ac455`、`826f518`、`03b1efb`、`71cb693`、`e0f4868`；终审集中修复 `a13e3b7`、`895f7bb`；证据 `90b0eab`）。`final_infra_review`（`gpt-5.6-sol` / max）对 `ac6d52c..90b0eab` 完成 scoped re-review，结论为 **APPROVE / Ready to merge: Yes**：4 项 Important 与 1 项 Minor 全部 ADDRESSED，无新 Critical/Important；定向复跑 2 个测试文件/7 项测试全部通过。
-- [ ] P10：配置 PR/merge 后准备可访问的线上 WebUI。依赖 P9，仍需部署平台账号与授权、`main` 首次 GHCR 发布及 Public、Atlas/Render 和真实 URL 验证、NJU GitLab 成功；不含学生 `REFLECTION.md`。
+- [ ] P10：配置 PR/merge 后准备可访问的线上 WebUI。依赖 P9；在当时的计划阶段，仍需部署平台账号与授权、`main` 首次 GHCR 发布及 Public、Atlas/Render 和真实 URL 验证、NJU GitLab 成功；不含学生 `REFLECTION.md`。这些前四项已在后续部署证据中部分或全部发生，当前准确的剩余门禁见“2026-08-11 Deployment evidence update”。
 - [ ] P11：由学生完成 `REFLECTION.md`，执行最终验证并提交。依赖 P3–P10。
 
 ## 本阶段验证证据
