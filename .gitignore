@@ -96,6 +96,7 @@ dist
 tmp/
 temp/
 .worktrees/
+.superpowers/sdd/
 
 # Database files
 *.db
