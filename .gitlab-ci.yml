@@ -1,0 +1,28 @@
+stages:
+  - test
+  - quality
+
+default:
+  image: node:22-bookworm-slim
+  cache:
+    key:
+      files:
+        - backend/package-lock.json
+        - frontend/package-lock.json
+    paths:
+      - .npm/
+  before_script:
+    - npm ci --prefix backend --cache .npm --prefer-offline
+    - npm ci --prefix frontend --cache .npm --prefer-offline
+
+unit-test:
+  stage: test
+  script:
+    - npm test
+
+quality:
+  stage: quality
+  script:
+    - npm run lint
+    - npm run type-check
+    - npm run build

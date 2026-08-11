@@ -1,56 +1,54 @@
 # Agent 协作日志
 
-## 2026-08-10 / P0：课程与仓库审计
+## 2026-08-10 / P0–P7：活动收藏增量
 
-- Agent：Codex 主 Agent。
-- 操作：阅读三份课程要求；检查仓库模块、测试、CI、Docker 和缺失交付物。
-- 结论：选择 B 类应用项目；代码规模合格，需补齐课程过程与部署材料。
-- 人工决策：学生确认已有项目可作为基线，目标为最低成本、稳妥及格。
+课程基线审计、brainstorming、计划、冷启动验证、实现和复审的完整可核验摘要位于 [SPEC_PROCESS.md](SPEC_PROCESS.md)。该记录只保存 prompt/context 摘要，不声称保存逐字会话 prompt；临时 task report 和审查 diff 位于 gitignored `.superpowers/sdd/` 工作区。
 
-## 2026-08-10 / P1：Brainstorming
+- `favorites_backend` / `review_backend`：后端收藏实现与独立复审；提交 `961c0a28cd339b8d528cdeae36acd4c830351d54`，后续修复 `ecd48d6`、`b804e693be893fb269068afb45d6baf8d3416e7a`。
+- `favorites_state` / `review_state`：前端状态 Hook 与时序复审；提交 `7d7580a31b8f65ca743031fab3d92364be43f1fa`、`66313e0c418ea507e360202116850838ebf5d4b4`、`e44937fd3f6f3778b02d98410cbb2c8c5bdd3e12`、`04935c4bad7d9e28219e7146d115dd644f124d49`、`e35143c`。
+- `favorites_ui` / `review_ui`：页面接入与规约复审；提交 `cdf5d6d`、`d9444eb`、`611f003`。
+- `favorites_evidence` / `review_evidence`：过程证据与只读文档复审。
 
-- 技能：`superpowers:using-superpowers`、`superpowers:brainstorming`。
-- 关键决策：选择 User 内 ObjectId 数组实现活动收藏；不增加收藏夹、通知和推荐。
-- 人工干预：学生批准活动收藏选题及最终设计。
-- 产物：`docs/superpowers/specs/2026-08-10-activity-favorites-design.md`。
-- Commit：`39ceb4e`。
+使用的纪律包括 `superpowers:using-git-worktrees`、`superpowers:subagent-driven-development`、`superpowers:test-driven-development`、`superpowers:requesting-code-review` 和 `superpowers:verification-before-completion`。P4–P7 的真实 RED/GREEN 结果、审查发现与学生裁定见过程文档；`superpowers:finishing-a-development-branch` 尚未执行。
 
-## 2026-08-10 / P2：Writing Plans
+## 2026-08-10 / P8–P9：提交基础设施执行方式
 
-- 技能：`superpowers:writing-plans`。
-- 操作：把收藏增量拆成 4 个任务和 23 个可核验步骤，明确 TDD 红—绿—重构与两阶段评审。
-- 人工干预：学生选择 Subagent-Driven 执行方式。
-- 产物：`docs/superpowers/plans/2026-08-10-activity-favorites.md`。
-- Commit：`0012748`。
+本阶段实际使用 `superpowers:using-git-worktrees` 建立隔离工作区，使用 `superpowers:subagent-driven-development` 按 Task brief 分派独立实现/审查 Agent，使用 `superpowers:requesting-code-review` 发起定向复审，使用 `superpowers:receiving-code-review` 核验并处理反馈，并在完成声明前使用 `superpowers:verification-before-completion`。阶段设计与实施计划分别使用 `superpowers:brainstorming` 和 `superpowers:writing-plans`。`superpowers:finishing-a-development-branch` 尚未发生，不计为完成证据。
 
-## 2026-08-10 / P4–P7：活动收藏实现、审查与验证
+以下只记录可核验 prompt/context 摘要，不保存或声称保存逐字 prompt。模型与 effort 来自实际 Agent 调度记录。
 
-- 执行技能与框架：worktree 隔离使用 `superpowers:using-git-worktrees`；任务拆分与交接使用 `superpowers:subagent-driven-development`；实现纪律使用 `superpowers:test-driven-development`；评审使用 `superpowers:requesting-code-review`；完成声明前使用 `superpowers:verification-before-completion`。`superpowers:finishing-a-development-branch` 预留给后续分支收尾，本阶段尚未发生。
-- P4 实现 Agent：`favorites_backend`，`gpt-5.6-terra` / `high`。prompt 摘要：以 `task-1-brief.md` 为任务边界，携带精确 API 响应、活动状态可见性、倒序、PUT/DELETE 幂等、TDD 与报告契约；不是逐字 prompt。先后对 `UserService` 和 `UserController` 运行 RED，均因方法尚未定义失败；最终各为 GREEN 4/4。实现中先修正了 schema 数组语法错误，并修正一次 Unicode 消息回归。提交：`961c0a28cd339b8d528cdeae36acd4c830351d54`。审查 Agent：`review_backend`，同模型/effort；只读 `task-1-brief.md`、任务报告和 diff，分别做规格与质量判定，修复提交为 `ecd48d6`、`b804e69`。
-- P5 实现 Agent：`favorites_state`，`gpt-5.6-terra` / `high`。prompt 摘要：以 `task-2-brief.md`、既有 endpoint contract、TDD 约束，以及 disabled/error/race 行为为上下文；不是逐字 prompt。初始 RED 因 hook 模块不能解析而失败，GREEN 为 5/5。随后三轮 Hook 修复均保存实际 RED/GREEN：`success:false`、disable 后旧 GET/mutation 为 3/8→8/8；中断 render 的被动 effect 窗口为 1/9→9/9；layout 阶段旧 `reload` 为 1/10→10/10。提交：`7d7580a31b8f65ca743031fab3d92364be43f1fa`、`66313e0c418ea507e360202116850838ebf5d4b4`、`e44937fd3f6f3778b02d98410cbb2c8c5bdd3e12`、`04935c4bad7d9e28219e7146d115dd644f124d49`。审查 Agent：`review_state`，同模型/effort，只读 diff。
-- P6 实现 Agent：`favorites_ui`，`gpt-5.6-terra` / `high`。prompt 摘要：以 `task-3-brief.md`、既有 `useFavorites` contract、Ant Design 一致性、不增加依赖和 TDD 为上下文；不是逐字 prompt。`ActivityCard` 收藏按钮先 RED（找不到所需可访问名称），后 GREEN 4/4。审查 Agent：`review_ui`，同模型/effort，只读 brief、报告和 diff。初始六文件范围与规约正确性冲突时，学生作出人类裁定：以规约正确性和 TDD 为准，授权新增 `frontend/src/pages/ActivityDetail.test.tsx`。组织者收藏先 RED（无收藏按钮）后 GREEN（聚焦 2 文件 5/5）；修复提交：`d9444eb`、`611f003`，初版提交：`cdf5d6d`。
-- P7 证据 Agent：`favorites_evidence`，`gpt-5.6-terra` / `medium`。prompt 摘要：仅从四份 task brief、task reports 与 progress ledger 汇总课程证据，执行两阶段审查和前后端全量 gates，只提交三份过程文档；不是逐字 prompt。文档审查 Agent：`review_evidence`，只读 Task 4 文档 diff。
-- 在 `d9444eb` 上的初次 Task 4 门禁结果：后端 `lint`、`type-check`、`test`、`build` 均 exit 0，Vitest 13 文件/37 测试通过；前端同四项均 exit 0，Vitest 6 文件/20 测试通过。前端 build 有非失败的 Vite 500 kB chunk 体积警告；该结果是审查修复前的历史证据，不代替最终门禁。
-- P7 第一阶段规约审查（范围 `431803f..d9444eb`，未运行测试）发现 3 项 Important：列表页未登录收藏无登录引导；列表页和详情页未显示 mutation 失败错误；若干计划/设计验收情形没有直接自动化覆盖。`611f003` 以页面 RED/GREEN 补齐游客登录、错误恢复和 Profile/list/detail 测试；`ecd48d6` 补齐后端 404、幂等、缺失用户和真实路由边界，并修复旧用户没有 `favoriteActivities` 字段时的查询。两次 scoped re-review 均无 Critical/Important。
-- P7 第二阶段质量、安全、错误处理和测试充分性审查（范围 `431803f..ecd48d6`，只读且未运行测试）发现 1 项 Important：`getFavorites` 未 populate `organizer`，实际 ObjectId 与前端 `Activity.organizer: User` 以及 `ActivityCard` 的头像/用户名读取不匹配；现有前后端测试都以完整 organizer 假数据掩盖了该跨层问题。`b804e693be893fb269068afb45d6baf8d3416e7a` 通过先 RED（populate spy 0 次调用、1/9 失败）再 GREEN（服务 9/9、真实路由 4/4）补充 `populate('organizer', 'username email avatar')` 及直接断言。最终只读复审 Approved，无 Critical/Important。
-- `b804e69` 作为最终应用代码提交及该轮验证 HEAD 时的质量门禁实际结果：后端 `lint`、`type-check`、`test`、`build` 均 exit 0，Vitest 14 文件/46 测试通过；前端同四项均 exit 0，Vitest 8 文件/28 测试通过。前端测试输出 jsdom `getComputedStyle` pseudo-element 非失败提示，build 输出 Vite 500 kB chunk 非失败警告。该历史结果不表示它是后续修复后的当前或最终 HEAD。
-- 后续最终审查发现 3 项 Important：disable commit 后旧 toggle 仍可写入；首次 favorites GET pending/失败时页面和 Hook 可把 unknown 误判为未收藏并 PUT；详细计划要求 actual prompts，但仓库证据只保留摘要。`e35143c` 以真实 RED/GREEN 增加实时 enabled/ready/ID guards、`ready`/`errorKind` 契约、页面禁用与错误分类，并清理组织者负向断言和精确 DTO。
-- 此轮同时处理原 deferred minors：`favoriteActionAttempted` 从三页删除，API 文档区分 401/403，组织者测试明确不存在报名/已报名/取消报名控件。错误来源由 Hook 的 `errorKind` 决定，reload 开始时同步清理旧错误分类。
-- Prompt/context 留存边界来自学生在最终审查中的真实人工裁定：提交材料保存可核验的 prompt/context 摘要，不提交冗长逐字 session prompt，也不声称 actual verbatim prompts 已被保存。完整临时 task reports 与 diff package 位于 gitignored `.superpowers/sdd/2026-08-10-activity-favorites/` 工作区，不随仓库提交。
+## 2026-08-10 / P8：根命令与 CI
 
-## 已知流程偏离
+- 实现 Agent：`infra_root_commands`（`gpt-5.6-terra` / medium）。上下文：以 Task 1 brief 为边界，增加无依赖的根 `package.json` 脚本及锁文件，根命令必须顺序执行子项目门禁；不改业务代码。提交 `e4c4f84fce0a1d44933c29b25bfd7d950d7e9025`。
+- 审查 Agent：`review_root_commands`（`gpt-5.6-terra` / medium）。上下文：只读 Task 1 brief、报告和 diff，检查脚本精确性、锁文件范围和 README 命令契约；未发现阻塞问题。
+- 实现 Agent：`infra_ci`（`gpt-5.6-terra` / medium）。上下文：以 Task 2 brief 为边界，增加 GitLab 单元测试/质量 job 与 GitHub 双镜像 Buildx 检查，且不接入镜像仓库凭据。提交 `6686bb6e5ace9b482f210a1177db77460eb09237`。
+- 审查 Agent：`review_ci`（`gpt-5.6-terra` / high）。上下文：只读 CI brief、报告和 diff，检查 YAML、缓存/锁文件契约、Docker context 与 `push: false`；未发现 Critical/Important 问题。
+- 验证：`npm test`、`npm run verify` 均退出 0；CI YAML 通过 PyYAML 静态断言；`git diff --check` 退出 0。
 
-- UniMove 基线代码早于本课程流程，不能证明全部使用测试先行；课程增量从 P3 起严格记录。
-- 基线 UI 使用 Ant Design，没有使用 Open Design。为保持既有界面一致且控制作业范围，本增量继续使用 Ant Design。
-- 早期仓库使用普通功能分支而非 worktree；活动收藏增量开始使用独立 worktree。
+## 2026-08-10 / P9：Docker 与提交文档
 
-## 2026-08-10 / P3：陌生 Agent 冷启动验证
+- 实现 Agent：`infra_docker`（`gpt-5.6-terra` / high）。上下文：以 Task 3 brief 为边界，核心栈只保留 MongoDB/backend/frontend，健康依赖、反向代理和最小宿主机暴露；所有示例使用进程本地伪凭据。提交 `72ac455`，修复轮提交 `826f518`、`03b1efb`。
+- 审查 Agent：`review_docker`（`gpt-5.6-sol` / high）。上下文：只读 Docker brief、报告、diff 和本机 Docker 状态，审查规约、安全、运行时与清理边界。首轮发现固定容器名称、直出端口、URI 密码、Mongo Express 认证和 IPv6 健康检查问题。后续按限定范围复审 `03b1efb` 的 loopback CORS 修复与 MIT metadata 修复，结论为 APPROVE、无新 Critical/Important；当时把 `/api/health` 不做数据库读记录为 deferred minor，后续 whole-branch 终审将“非 connected 仍返回 200/成功”这一实际假阳性提升为 Important。
+- 实现 Agent：`infra_docs`（`gpt-5.6-terra` / high）。上下文：只更新 README、Docker 指南和课程过程文档，使其反映已验证的 root/CI/Docker 契约；移除不存在脚本、Compose 中的开发热重载及危险清理的常规指引。首轮文档提交 `71cb693`；未保存逐字 prompt 或真实凭据。
+- Task 4 审查 Agent：`review_infra_docs`（`gpt-5.6-sol` / high）。上下文：只读 Task 4 brief、报告和 `826f518..71cb693` diff，检查提交章节、命令、安全陈述与课程证据。首轮准确的 2 项 Important 为：A）README/DOCKER_GUIDE 把浏览器入口写为 `127.0.0.1`，而当时 Compose backend CORS 只允许 `http://localhost`，入口与 allowlist 不一致；B）课程日志遗漏本阶段实际技能、模型/effort、Task 4 reviewer、`71cb693` 以及 whole-branch review pending 状态。A 由 `infra_docker` 在 `03b1efb` 修复，并由 `review_docker` 后续 scoped 复审批准；B 由 `infra_docs` 在 `e0f4868` 补齐。
+- 同轮 Minor：Docker 指南需说明 `compose config` 不能证明 raw/encoded 密码等价且会输出解析后的秘密；Task 4 report 的凭据扫描需使用可复现表达式；README 应写实际依赖 `bcryptjs`；后续 MIT metadata 状态需同步记录。这些均在 `e0f4868` 的文档修订或 `03b1efb` 的 metadata 修复中处理，不计为首轮 Important。
+- 验证：使用 process-local dummy secrets 的 `docker compose -p unimove-validation config` 与 tools 合并配置均退出 0；镜像构建成功；成功运行时三个核心服务均 healthy，`/health` 返回 `200 ok`，`/api/health` 返回连接成功。最终根 `npm run verify`、核心/tools `docker compose config`、`git diff --check` 与已跟踪文件凭据扫描在本阶段文档完成后重新执行并记录在 Task 4 report。
 
-- Agent：独立 Codex 子 Agent（无主对话历史），任务名 `coldstart_favorites`，`gpt-5.6-terra` / `high`。
-- 输入边界：只以根目录 `SPEC.md`、`PLAN.md` 为需求资料，允许检查实现所需源码。
-- 工作区：`.worktrees/coldstart-favorites`，分支 `course/coldstart-favorites`。
-- 技能纪律：TDD；逐项记录 RED/GREEN。
-- 结果：试做提交 `91d86c2`；后端 lint、类型检查、构建通过，14 个测试文件、41 项测试通过。
-- 关键偏差：Agent 把“失效活动”解释为 `cancelled` 并主动过滤，而原意只是忽略数据库中不存在的引用。
-- 人工决策：不直接合并试做代码；先明确状态、响应、排序、分页与物理清理策略，再由正式子 Agent 从修订规约实现。
-- 教训：抽象领域词必须在 SPEC 中映射到具体枚举值和 API 行为。
+## 2026-08-10 / P9：whole-branch 终审集中修复
+
+- Whole-branch 终审 Agent：`final_infra_review`（`gpt-5.6-sol` / max）。上下文：审查 `c8e39fd..ac6d52c` 的最终 diff package、设计/计划、Task reports、运行时与安全边界。结论为 4 项 Important 与 1 项 Minor：健康端点在数据库非 connected 时仍返回 200/成功；固定数据库应用用户被初始化但 backend 从未使用；demo importer 硬编码弱 admin 密码且 production 可运行；两份旧指南仍给出旧 Compose、直出数据库与固定凭据说明；两个 Docker context 未统一排除 `.env.*`。
+- 集中修复 Agent：`final_infra_fix`（`gpt-5.6-sol` / max）。上下文：在既有 worktree 内只处理上述发现，不扩大业务范围；使用 `superpowers:systematic-debugging`、`superpowers:test-driven-development`、`superpowers:receiving-code-review`、`superpowers:executing-plans`、`superpowers:using-git-worktrees` 与 `superpowers:verification-before-completion`。行为修复提交为 `a13e3b7`，数据库分发与用户文档提交为 `895f7bb`。
+- 健康 TDD：RED 为定向测试 2 项中 1 项失败，断开状态实际得到 200 而非 503；GREEN 为 2/2，通过后 backend 全套 15 文件/48 测试通过。最终实现仅以 Mongoose `readyState === 1` 返回 200/`success: true`，其余状态返回 503/`success: false`。
+- Seed TDD：RED 为 5/5 失败，证明缺失、过短、legacy 弱值和 production 均未被拒绝，且新 admin 收到硬编码值的散列；GREEN 为 5/5。最终 importer 要求当前进程的 `SEED_ADMIN_PASSWORD` 至少 12 字符、拒绝 legacy 弱值、production 无条件拒绝，并让 `User` 模型对该临时值执行一次散列。
+- 验证：根 `npm run verify` 退出 0（backend 16 文件/53 测试，frontend 8 文件/40 测试）；core/tools Compose 内存渲染、两个 Docker 镜像构建与 `.dockerignore` 内容断言通过。隔离项目 `unimove-finalfix-runtime` 初始三服务 healthy、API 为 200/connected；停止其 MongoDB 后 API 为 503/`success: false`/disconnected；重启后恢复三服务 healthy 与 200。清理只执行该项目的 `down`，未使用 `-v`，容器/网络均为 0，保留 1 个命名卷，预存 `d965b6c27f62` 未改变。
+- 本轮没有新的人工选择或干预；修复直接遵循已批准的最小安全方案。
+- Scoped re-review Agent：`final_infra_review`（`gpt-5.6-sol` / max）。上下文：只读复审 `ac6d52c..90b0eab` 的集中修复、证据和范围，并定向复跑 health/seed 两个测试文件。实际结果为 2 files/7 tests 全部通过；结论为 **APPROVE / Ready to merge: Yes**，原 4 项 Important 与 1 项 Minor 全部 ADDRESSED，无新 Critical/Important。
+- Reviewer 同时披露 3 项非阻塞、non-load-bearing residual：健康端点依赖 Mongoose `readyState` 而非主动 ping；本地 Compose 为简化继续使用 root，生产须改用外部最小权限用户；旧卷中的 legacy user 与本地 seed admin 仍需操作者按文档人工审计、轮换或删除。这些披露不改变批准结论。
+
+## 人工决策与待办
+
+- 学生选择保存可核验的 prompt/context 摘要，不提交冗长逐字 session prompt。
+- 学生未授权自动删除任何预先存在的 Docker 容器、卷或网络；验证清理仅限临时 Compose 项目且未使用 `-v`。
+- 本轮终审集中修复没有额外人工干预或范围变更。
+- P10（线上部署）和 P11（学生反思与最终提交）仍 pending；没有相应的部署或反思完成声明。
+- Task 4 定向审查、`final_infra_review` whole-branch 终审及其 scoped re-review 均已发生；最新结论为 APPROVE / Ready to merge: Yes。`superpowers:finishing-a-development-branch` 仍 pending，尚未执行集成选择。

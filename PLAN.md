@@ -2,41 +2,38 @@
 
 ## 项目基线
 
-UniMove 的认证、活动、订单、评论、前端界面、基础测试和 Docker 配置在课程增量开始前已经存在。本计划只把从 2026-08-10 开始执行的提交材料整理和活动收藏增量列为 Superpowers 流程任务，不把历史工作伪装为测试先行开发。
+UniMove 的认证、活动、订单、评论、前端界面和既有 Docker 配置在本课程增量前已经存在。本课程从 2026-08-10 起记录活动收藏功能和提交基础设施整理；不将历史代码虚构为 TDD 或 Superpowers 产物。
 
-详细可执行计划见：
+详细的收藏功能设计与计划：
 
-- `docs/superpowers/plans/2026-08-10-activity-favorites.md`
 - `docs/superpowers/specs/2026-08-10-activity-favorites-design.md`
+- `docs/superpowers/plans/2026-08-10-activity-favorites.md`
 
 ## 任务与依赖
 
-- [x] P0：审计课程要求和仓库基线。依赖：无。证据：当前 SPEC、设计文档和仓库历史。
-- [x] P1：通过 brainstorming 确定活动收藏设计。依赖：P0。提交：`39ceb4e`。
-- [x] P2：通过 writing-plans 编写 TDD 实施计划。依赖：P1。提交：`0012748`。
-- [x] P3：陌生 Agent 仅凭 `SPEC.md` 与 `PLAN.md` 冷启动试做，并修正规约歧义。依赖：P2。试做提交：`91d86c2`（隔离验证分支，不直接合并）。
-- [x] P4：在独立 worktree 中实现后端收藏模型、服务和 API。依赖：P3。提交：`961c0a28cd339b8d528cdeae36acd4c830351d54`。
-- [x] P5：实现前端收藏 API 与可复用状态 Hook。依赖：P4。提交：`7d7580a31b8f65ca743031fab3d92364be43f1fa`、`66313e0c418ea507e360202116850838ebf5d4b4`、`e44937fd3f6f3778b02d98410cbb2c8c5bdd3e12`、`04935c4bad7d9e28219e7146d115dd644f124d49`。
-- [x] P6：在活动列表、详情和个人中心接入收藏界面。依赖：P5。提交：`cdf5d6d`、`d9444eb`。
-- [x] P7：执行任务级评审和全分支评审，修复重要问题。依赖：P4–P6。第一阶段 3 项 Important 由 `611f003`、`ecd48d6` 修复；第二阶段 `organizer` populate 问题由 `b804e693be893fb269068afb45d6baf8d3416e7a` 修复，该提交是最终应用代码提交及该轮验证 HEAD。后续最终审查发现 stale toggle、未初始化收藏态写入和证据契约 3 项 Important；代码项由 `e35143c` 以实际 RED/GREEN 修复，证据项按学生人工裁定改为保存可核验 prompt/context 摘要、不声称保存逐字 session prompt。
-- [ ] P8：增加根目录一键验证命令和 `.gitlab-ci.yml` 的 `unit-test` job。依赖：P0，可与 P4–P6 并行。
-- [ ] P9：完善 Docker、README、安全边界、分发与已知限制。依赖：P8。
-- [ ] P10：准备可访问的线上 WebUI。依赖：P9，需要部署平台账号授权。
-- [ ] P11：由学生完成 `REFLECTION.md`，执行最终验证并提交。依赖：P3–P10。
+- [x] P0：审计课程要求与仓库基线。
+- [x] P1：通过 brainstorming 确定活动收藏设计（`39ceb4e`）。
+- [x] P2：通过 writing-plans 编写 TDD 实施计划（`0012748`）。
+- [x] P3：由冷启动 Agent 试做并据此修正规约（`91d86c2`；隔离分支，未直接合并）。
+- [x] P4：实现后端收藏模型、服务与 API（`961c0a28cd339b8d528cdeae36acd4c830351d54`）。
+- [x] P5：实现前端收藏 API 与可复用状态 Hook（`7d7580a31b8f65ca743031fab3d92364be43f1fa`、`66313e0c418ea507e360202116850838ebf5d4b4`、`e44937fd3f6f3778b02d98410cbb2c8c5bdd3e12`、`04935c4bad7d9e28219e7146d115dd644f124d49`）。
+- [x] P6：接入活动列表、详情和个人中心界面（`cdf5d6d`、`d9444eb`、`611f003`）。
+- [x] P7：完成规约、质量与安全复审；修复跨层 organizer 契约及状态时序问题（`ecd48d6`、`b804e693be893fb269068afb45d6baf8d3416e7a`、`e35143c`）。
+- [x] P8：提供根目录一键质量门禁和 GitLab `unit-test`/质量 CI（`e4c4f84fce0a1d44933c29b25bfd7d950d7e9025`、`6686bb6e5ace9b482f210a1177db77460eb09237`）；本阶段最终 `npm run verify` 已通过。
+- [x] P9：完成可复核 Docker 分发、安全边界、README 与提交文档（既有提交 `72ac455`、`826f518`、`03b1efb`、`71cb693`、`e0f4868`；终审集中修复 `a13e3b7`、`895f7bb`；证据 `90b0eab`）。`final_infra_review`（`gpt-5.6-sol` / max）对 `ac6d52c..90b0eab` 完成 scoped re-review，结论为 **APPROVE / Ready to merge: Yes**：4 项 Important 与 1 项 Minor 全部 ADDRESSED，无新 Critical/Important；定向复跑 2 个测试文件/7 项测试全部通过。
+- [ ] P10：准备可访问的线上 WebUI。依赖 P9，需要部署平台账号与授权。
+- [ ] P11：由学生完成 `REFLECTION.md`，执行最终验证并提交。依赖 P3–P10。
 
-## TDD 与评审纪律
+## 本阶段验证证据
 
-P4–P6 的每个行为变更都遵循：先写失败测试并记录失败原因，再实现最少代码使其通过，随后重构并运行全量检查。独立 worktree 使用 `superpowers:using-git-worktrees`，任务执行使用 `superpowers:subagent-driven-development`，行为变更使用 `superpowers:test-driven-development`，独立评审使用 `superpowers:requesting-code-review`。每个任务由新的实现子 Agent 执行，再由独立审查 Agent 检查规约符合性和代码质量；完成声明前使用 `superpowers:verification-before-completion`。`superpowers:finishing-a-development-branch` 属于后续分支收尾步骤，本阶段尚未执行，不能记为已完成证据。
+根目录的 `npm run verify` 顺序执行前后端 lint、类型检查、测试与构建。Task 1 的实际结果是后端 14 个测试文件/46 项测试、前端 8 个测试文件/40 项测试均通过；Vite chunk 建议和 jsdom pseudo-element 提示不影响退出码。
 
-`PLAN.md` 在任务完成时补充实际 commit hash；过程、Agent、测试红绿结果和人工干预写入 `AGENT_LOG.md`。
+Task 3 使用仅进程本地的伪值验证了核心和 tools Compose 渲染、镜像构建及运行时健康检查。核心栈在 `unimove-validation` 项目名下运行成功：frontend、backend、mongodb 均为 healthy，`GET http://127.0.0.1/health` 返回 `200 ok`，`GET http://127.0.0.1/api/health` 返回 `200`、`success=True`、`database=connected`。`03b1efb` 后又分别以 `Origin: http://127.0.0.1` 和 `Origin: http://localhost` 请求同一健康端点，两次均返回 200 与完全匹配的 `Access-Control-Allow-Origin`。启动曾因短于 32 字符的 JWT 被 backend 拒绝；以满足既有校验的临时 JWT 重试成功。清理仅使用项目作用域的 `down`，未删除卷或原有 Docker 资源。
 
-## 验证命令
+终审修复后，根 `npm run verify` 再次通过（backend 16 文件/53 测试、frontend 8 文件/40 测试）。隔离 `unimove-finalfix-runtime` 栈初始三服务 healthy；停止该项目 MongoDB 后 `/api/health` 返回 503、`success=false`、`database=disconnected`，重启后恢复三服务 healthy 与 200/connected。项目级 `down` 未使用 `-v`，容器与网络清零、1 个命名卷保留，预存 `d965b6c27f62` 未改变。core/tools Compose、两个 Docker build、ignore 内容、扩展凭据扫描和 diff 门禁均通过。
 
-当前分目录验证：
+## 过程纪律与边界
 
-```bash
-cd backend && npm run lint && npm run type-check && npm test && npm run build
-cd ../frontend && npm run lint && npm run type-check && npm test && npm run build
-```
+收藏行为变更按 RED → GREEN → 重构记录；实施使用独立 worktree、实现/审查 Agent 分离，且在完成声明前运行验证。提交基础设施阶段使用 root 命令、CI、Docker 与文档审查；不宣称完整历史基线均为 TDD。
 
-P8 将增加根目录统一命令，并由 GitLab CI 的 `unit-test` job 调用。
+核心 Docker 栈不发布 backend 或 MongoDB 端口；frontend 仅绑定回环地址。凭据由 shell 环境传入，`MONGO_ROOT_PASSWORD_URI` 是原始 Mongo 密码的 URI 百分号编码值，该等价关系由变量设置者保证而非 `docker compose config` 验证。Scoped re-review 批准时保留 3 项已披露、non-load-bearing residual：健康检查使用 `readyState` 而非主动 ping；本地 Compose 为简化使用 root、生产必须使用外部最小权限应用用户；旧卷用户与 seed admin 仍需操作者人工审计、轮换或删除。Mongo Express 是显式启用的可选工具，亦仅绑定回环地址。`superpowers:finishing-a-development-branch` 尚未执行。

@@ -1,264 +1,101 @@
 # UniMove 开发指南
 
-## 🚀 快速开始
+## 环境与安装
 
-### 环境准备
-确保您的开发环境已安装：
-- Node.js >= 16.0.0
-- MongoDB >= 4.4
-- npm >= 8.0.0
-- Git
+需要 Node.js `>=22.12.0`、npm 和 Git。本机运行 backend 时还需要一个你已配置并获授权访问的 MongoDB；运行完整本地栈则需要 Docker Engine 与 Docker Compose v2。
 
-### 项目克隆和安装
-
-```bash
-# 克隆项目
-git clone <your-repository-url>
-cd UniMove
-
-# 安装后端依赖
-cd backend
-npm install
-
-# 安装前端依赖
-cd ../frontend
-npm install
+```powershell
+git clone https://github.com/Ezio927/UniMove.git
+Set-Location UniMove
+npm run install:all
 ```
 
-### 环境配置
+`npm run install:all` 使用前后端锁文件执行 `npm ci`。请保留 `package-lock.json`，不要把 `node_modules`、构建输出或环境文件提交到仓库。
 
-#### 后端环境变量
-创建 `backend/.env` 文件：
-```env
-# 数据库配置
-MONGODB_URI=mongodb://localhost:27017/unimove
-DB_NAME=unimove
+## 本机开发服务器
 
-# JWT 配置
-JWT_SECRET=replace-with-at-least-32-random-characters
+复制两个已跟踪的示例文件，再只在未跟踪的 `.env` 中填入你自己的开发值：
 
-# 服务器配置
-PORT=3000
-NODE_ENV=development
-
-# CORS 配置
-FRONTEND_URL=http://localhost:5173
+```powershell
+Copy-Item backend/.env.example backend/.env
+Copy-Item frontend/.env.example frontend/.env
 ```
 
-#### 前端环境变量
-创建 `frontend/.env` 文件：
-```env
-VITE_API_URL=http://localhost:3001/api
+- `backend/.env` 的 `MONGODB_URI` 必须指向你明确配置的本机、测试或托管数据库；仓库不提供固定数据库用户名或密码。
+- `JWT_SECRET` 应使用开发环境专用的随机值；生产模式至少 32 字符。
+- `PORT=3001`、`FRONTEND_URL=http://localhost:5173` 与 frontend 的 `VITE_API_URL=http://localhost:3001/api` 是现有示例契约。
+- `.env` 与 `.env.*` 被 Docker build context 排除；`.env.example` 仍会保留为无秘密模板。
+
+分别启动两个开发服务器：
+
+```powershell
+# 终端 1
+npm run dev --prefix backend
+
+# 终端 2
+npm run dev --prefix frontend
 ```
 
-### 启动开发服务器
+前端地址为 `http://localhost:5173`，backend 地址为 `http://localhost:3001`，backend 健康端点为 `http://localhost:3001/api/health`。健康端点仅在 Mongoose connected 时返回 HTTP 200 与 `success: true`，其他连接状态返回 HTTP 503 与 `success: false`。
 
-#### 启动后端
-```bash
-cd backend
-npm run dev
+## Docker 本地分发
+
+Docker 的唯一详细操作文档是 [DOCKER_GUIDE.md](DOCKER_GUIDE.md)，数据库模式与旧卷审计见 [DATABASE_SETUP.md](DATABASE_SETUP.md)。核心栈只有 MongoDB、backend、frontend：
+
+- frontend 是唯一宿主机入口，仅绑定 `127.0.0.1:80`；
+- backend 与 MongoDB 只在 Compose 网络内可达，不发布宿主机端口；
+- Mongo Express 是 `docker-compose.tools.yml` 中显式启用的可选工具，仅绑定本机回环地址的 8081 端口；
+- 所有 Compose 密钥都从启动命令所在 shell 的进程环境传入。
+
+不要把 Compose 的本地 root 数据库账户模型当作生产方案。生产环境应使用外部配置的最小权限应用用户、TLS、受控密钥管理、网络策略、备份与监控。
+
+## 本地演示数据
+
+`import-data` 会创建或复用 admin 用户，并清空、重建活动数据，因此只能对可丢弃的本地演示数据库执行。脚本在 production 中无条件拒绝运行，并要求当前进程环境提供至少 12 字符的临时 admin 密码：
+
+```powershell
+$env:SEED_ADMIN_PASSWORD = '<strong-temporary-value-with-at-least-12-characters>'
+npm run import-data --prefix backend
+Remove-Item Env:SEED_ADMIN_PASSWORD
 ```
-访问: http://localhost:3000
 
-#### 启动前端
-```bash
-cd frontend
-npm run dev
+不要把 seed 密码写入 `.env` 或仓库。公开部署前删除演示 admin，或通过受控流程重置其密码；再次导入不会自动轮换已存在 admin 的凭据。
+
+## 质量门禁
+
+从仓库根目录执行：
+
+```powershell
+npm test
+npm run verify
 ```
-访问: http://localhost:5173
 
-## 🏗️ 项目架构
+`npm test` 顺序运行前后端测试。`npm run verify` 顺序运行两端 lint、TypeScript 检查、测试和生产构建，是本地提交前与 CI 的完整门禁。定位单个子项目时可使用 `--prefix`：
 
-### 目录结构
+```powershell
+npm run lint --prefix backend
+npm run type-check --prefix backend
+npm test --prefix backend
+npm run build --prefix backend
 ```
+
+## 项目结构
+
+```text
 UniMove/
-├── frontend/                 # React 前端
-│   ├── src/
-│   │   ├── api/             # API 接口
-│   │   ├── components/      # 可复用组件
-│   │   ├── pages/           # 页面组件
-│   │   ├── store/           # Redux 状态管理
-│   │   └── App.tsx          # 根组件
-│   ├── public/              # 静态资源
-│   └── package.json
-├── backend/                  # Node.js 后端
-│   ├── src/
-│   │   ├── controllers/     # 控制器
-│   │   ├── models/          # 数据模型
-│   │   ├── routes/          # 路由
-│   │   ├── middleware/      # 中间件
-│   │   ├── utils/           # 工具函数
-│   │   └── index.ts         # 应用入口
-│   └── package.json
-├── .github/                  # GitHub 配置
-│   ├── workflows/           # GitHub Actions
-│   └── copilot-instructions.md
-└── README.md
+├── backend/                   # Express API、模型、服务、校验与测试
+├── frontend/                  # React 页面、组件、状态、API 客户端与测试
+├── docs/                      # API、设计和实施计划
+├── docker-compose.yml         # MongoDB/backend/frontend 核心栈
+├── docker-compose.tools.yml   # 可选 Mongo Express 工具覆盖
+├── DOCKER_GUIDE.md            # Docker 命令、安全边界与排障
+└── DATABASE_SETUP.md          # 数据库模式、旧卷审计与轮换
 ```
 
-## 📝 开发规范
+## 开发与提交约定
 
-### 命名规范
-- **组件**: PascalCase (`ActivityCard.tsx`)
-- **文件**: PascalCase (组件) 或 camelCase (工具函数)
-- **变量和函数**: camelCase (`getUserProfile`)
-- **常量**: UPPER_SNAKE_CASE (`API_BASE_URL`)
-- **类型接口**: PascalCase，以 I 开头 (`IUser`)
-
-### 代码风格
-- 使用 TypeScript 确保类型安全
-- 遵循 ESLint 和 Prettier 配置
-- 函数式编程风格，优先使用 React Hooks
-- 添加适当的注释和 JSDoc
-
-### Git 提交规范
-```bash
-# 功能开发
-git commit -m "feat: 添加用户登录功能"
-
-# Bug 修复
-git commit -m "fix: 修复活动列表分页问题"
-
-# 文档更新
-git commit -m "docs: 更新 README 文档"
-
-# 样式调整
-git commit -m "style: 优化活动卡片样式"
-
-# 重构代码
-git commit -m "refactor: 重构用户认证逻辑"
-```
-
-## 🔧 开发工具配置
-
-### VS Code 插件推荐
-- **ES7+ React/Redux/React-Native snippets**: React 代码片段
-- **TypeScript Importer**: 自动导入类型
-- **Prettier**: 代码格式化
-- **ESLint**: 代码质量检查
-- **Auto Rename Tag**: 自动重命名标签
-- **Bracket Pair Colorizer**: 括号颜色匹配
-
-### VS Code 设置
-```json
-{
-  "editor.formatOnSave": true,
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true
-  },
-  "typescript.preferences.importModuleSpecifier": "relative"
-}
-```
-
-## 🧪 测试指南
-
-### 运行测试
-```bash
-# 后端测试
-cd backend
-npm test
-
-# 前端测试
-cd frontend
-npm test
-```
-
-### 测试编写原则
-- 为关键业务逻辑编写单元测试
-- API 接口编写集成测试
-- 组件编写快照测试和交互测试
-
-## 📦 构建和部署
-
-### 本地构建
-```bash
-# 构建前端
-cd frontend
-npm run build
-
-# 构建后端
-cd backend
-npm run build
-```
-
-### 生产环境部署
-1. **环境变量配置**: 设置生产环境的环境变量
-2. **数据库准备**: 确保 MongoDB 服务可用
-3. **应用启动**: 使用 PM2 或 Docker 部署应用
-4. **反向代理**: 配置 Nginx 作为反向代理
-
-### Docker 部署
-```bash
-# 构建镜像
-docker build -t unimove-frontend ./frontend
-docker build -t unimove-backend ./backend
-
-# 运行容器
-docker-compose up -d
-```
-
-## 🔍 调试技巧
-
-### 前端调试
-- 使用 React DevTools 检查组件状态
-- 使用 Redux DevTools 调试状态管理
-- 浏览器开发者工具查看网络请求
-- console.log 和断点调试
-
-### 后端调试
-- 使用 VS Code 的 Node.js 调试器
-- 查看终端日志输出
-- 使用 Postman 测试 API 接口
-- MongoDB Compass 查看数据库数据
-
-## 📚 学习资源
-
-### 文档链接
-- [React 官方文档](https://react.dev/)
-- [TypeScript 手册](https://www.typescriptlang.org/docs/)
-- [Ant Design 组件库](https://ant.design/)
-- [Express.js 指南](https://expressjs.com/)
-- [MongoDB 文档](https://docs.mongodb.com/)
-
-### 推荐教程
-- React Hooks 最佳实践
-- TypeScript 进阶用法
-- Redux Toolkit 状态管理
-- Node.js 性能优化
-- MongoDB 数据建模
-
-## 🐛 常见问题
-
-### Q: 前端无法连接后端 API
-**A**: 检查后端是否正常启动，确认端口配置和 CORS 设置
-
-### Q: MongoDB 连接失败
-**A**: 确认 MongoDB 服务已启动，检查连接字符串配置
-
-### Q: TypeScript 类型错误
-**A**: 检查类型定义，确保导入正确的类型接口
-
-### Q: 样式不生效
-**A**: 确认 CSS 文件已正确导入，检查类名拼写
-
-### Q: 路由跳转失效
-**A**: 检查路由配置，确认 React Router 设置正确
-
-## 🤝 贡献指南
-
-### 如何贡献
-1. Fork 项目到您的 GitHub 账户
-2. 创建功能分支 (`git checkout -b feature/amazing-feature`)
-3. 提交您的更改 (`git commit -m 'Add some amazing feature'`)
-4. 推送到分支 (`git push origin feature/amazing-feature`)
-5. 创建 Pull Request
-
-### 代码审查
-- 确保代码符合项目规范
-- 添加必要的测试用例
-- 更新相关文档
-- 通过 CI/CD 检查
-
----
-
-欢迎参与 UniMove 项目的开发！如果您有任何问题或建议，请随时联系我们。
+- TypeScript 代码必须通过现有 ESLint 与类型检查；不要为无关代码做顺手重构。
+- 业务行为或 bugfix 使用 RED → GREEN 测试循环，并在完成声明前运行相关测试与根门禁。
+- API 契约变更同步更新 [docs/API.md](docs/API.md)；部署与凭据边界同步更新 Docker/数据库指南。
+- 提交信息采用简洁的 Conventional Commits 风格，例如 `fix: reject unhealthy database state` 或 `docs: update database setup`。
+- 安全问题按 [SECURITY.md](SECURITY.md) 私下报告，不在公开 issue 中粘贴凭据或敏感日志。

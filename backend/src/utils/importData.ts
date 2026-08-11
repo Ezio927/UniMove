@@ -1,8 +1,8 @@
 import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
 import { Activity } from '../models/Activity';
 import { User } from '../models/User';
 import { connectDatabase } from '../utils/database';
+import { getSeedConfig } from './seedConfig';
 import dotenv from 'dotenv';
 
 // 加载环境变量
@@ -116,17 +116,15 @@ const sampleActivities = [
   }
 ];
 
-async function createDefaultUser() {
+async function createDefaultUser(adminPassword: string) {
   // 创建一个默认的组织者用户
   const existingUser = await User.findOne({ email: 'organizer@unimove.com' });
   
   if (!existingUser) {
-    const hashedPassword = await bcrypt.hash('password123', 12);
-    
     const defaultUser = new User({
       username: '系统管理员',
       email: 'organizer@unimove.com',
-      password: hashedPassword,
+      password: adminPassword,
       role: 'admin',
       phone: '13800138000',
       avatar: ''
@@ -140,6 +138,8 @@ async function createDefaultUser() {
 
 async function importActivities() {
   try {
+    const { adminPassword } = getSeedConfig();
+
     // 如果没有连接数据库，则连接
     if (mongoose.connection.readyState === 0) {
       console.log('🔗 连接数据库...');
@@ -147,7 +147,7 @@ async function importActivities() {
     }
     
     console.log('👤 创建默认用户...');
-    const defaultUser = await createDefaultUser();
+    const defaultUser = await createDefaultUser(adminPassword);
     
     console.log('🗑️  清空现有活动数据...');
     await Activity.deleteMany({});
